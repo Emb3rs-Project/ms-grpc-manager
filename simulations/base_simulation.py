@@ -53,6 +53,13 @@ class BaseSimulation:
           input_data={},
           errors={ "message" : "Service is not available"}
         )
+      elif rpc_error.code() == grpc.StatusCode.UNKNOWN:
+        self.reporter.save_step_error(
+          module=module,
+          function=function,
+          input_data={},
+          errors={ "message" : rpc_error.details()}
+        )
       return False
     except Exception as e:
       self.reporter.save_step_error(

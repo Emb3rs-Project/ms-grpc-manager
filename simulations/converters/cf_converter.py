@@ -29,7 +29,6 @@ def platform_to_convert_source(initial_data):
   for _source in initial_data['sources']:
     source = _source['values']['properties']
     source['id'] = _source['id']
-    source['consumer_type'] = 'non-household'
     source['location'] = _source['location']['data']['center']
     source['streams'] = _source['values']['characterization']['streams']
 
@@ -53,3 +52,10 @@ def cf_module_to_convert_source(initial_data: Dict[str, Any], river_data : Dict[
     output['last_iteration_data'] = river_convert_source.dict()
 
   return output
+
+
+def platform_to_orc_convert(initial_data):
+  convert_source = platform_to_convert_source(initial_data=initial_data)
+  output = convert_source["group_of_sources"][0]
+  
+  return convert_source["group_of_sources"][0]

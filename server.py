@@ -40,7 +40,9 @@ class ManagerModule(ManagerServicer):
       try:
         runner.run()
       except Exception:
-        return StartSimulationResponse()
+        return StartSimulationResponse(
+          status = 1
+        )
         
 
 def serve():
