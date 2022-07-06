@@ -16,7 +16,8 @@ def platform_to_convert_sink(initial_data):
     sink['consumer_type'] = 'non-household'
     sink['location'] = _sink['location']['data']['center']
     sink['streams'] = sink['characterization']['streams']
-
+    del sink['characterization']
+    
     group_of_sinks.append(sink)
 
   return {

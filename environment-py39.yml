@@ -17,6 +17,7 @@ dependencies:
   - pydantic=
   - jsonpickle=
   - sqlalchemy=
+  - psycopg2=
   - pip:
     - grpcio==1.44.0
     - protobuf==3.20.1
