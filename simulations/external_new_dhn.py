@@ -99,7 +99,7 @@ class ExternalNewDHN(BaseSimulation):
                 "GIS Module",
                 "create_network",
                 {},
-                CreateNetworkOutputModel().from_grpc(result).dict(),
+                result,
             )
 
         if not self.safe_run_step(
