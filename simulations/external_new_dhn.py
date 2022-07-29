@@ -25,6 +25,12 @@ from simulations.converters.gis_converter import (
 )
 
 from gis.gis_pb2 import CreateNetworkInput, OptimizeNetworkInput
+from simulations.converters.teo_converter import (
+    cf_module_to_buildmodel,
+    gis_module_to_buildmodel,
+    platform_to_buildmodel,
+)
+from teo.teo_pb2 import BuildModelInput
 
 
 class ExternalNewDHN(BaseSimulation):
@@ -99,10 +105,29 @@ class ExternalNewDHN(BaseSimulation):
                 "GIS Module",
                 "create_network",
                 {},
-                result,
+                {},
             )
 
         if not self.safe_run_step(
             "GIS Module", "create_network", run_gis_create_network
         ):
+            return
+
+        def run_teo_buildmodel():
+            platform = platform_to_buildmodel(
+                initial_data=self.initial_data, river_data=self.river_data
+            )
+            cf_module = cf_module_to_buildmodel(river_data=self.river_data)
+            gis_module = gis_module_to_buildmodel(river_data=self.river_data)
+
+            self.request = BuildModelInput(
+                platform=json.dumps(platform),
+                cf_module=json.dumps(cf_module),
+                gis_module=json.dumps(gis_module),
+            )
+
+            result = self.teo.buildmodel(self.request)
+            self.river_data["buildmodel"] = result
+
+        if not self.safe_run_step("TEO Module", "buildmodel", run_teo_buildmodel):
             return
