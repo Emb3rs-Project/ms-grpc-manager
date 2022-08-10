@@ -1,9 +1,0 @@
-{
-  "python.analysis.extraPaths": [
-    "ms_grpc/plibs",
-    "./ms-grpc/plibs"
-  ],
-  "editor.formatOnSave": true,
-  "python.analysis.completeFunctionParens": true,
-  "python.formatting.provider": "black"
-}

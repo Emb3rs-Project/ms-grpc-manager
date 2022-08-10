@@ -37,6 +37,8 @@ ENV PYTHONPATH=ms-grpc/plibs:module
 EXPOSE 50051
 
 SHELL [ "/bin/bash", "-c" ]
+RUN echo 'source /venv/bin/activate' >> ~/.bashrc && source ~/.bashrc
+
 ENTRYPOINT source /venv/bin/activate && \
     PYTHONPATH=ms-grpc/plibs:module \
     python -u server.py
