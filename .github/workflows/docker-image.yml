@@ -3,7 +3,7 @@ name: Create and Publish a Docker Image in GHCR
 on:
   push:
     branches: [ qa ]
-    tags: [ * ]
+    tags: [ '*' ]
 
 env:
   REGISTRY: ghcr.io
