@@ -3,6 +3,10 @@ name: Create and Publish a Docker Image in GHCR
 on:
   push:
     branches:
+      - "main"
+      - "qa"
+  pull_request:
+    branches:
       - "qa"
 
 env:
