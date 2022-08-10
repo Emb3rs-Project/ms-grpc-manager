@@ -3,8 +3,8 @@ name: Create and Publish a Docker Image in GHCR
 on:
   push:
     branches:
-      - "main"
       - "qa"
+#      - "main"
   pull_request:
     branches:
       - "qa"
@@ -17,7 +17,7 @@ env:
 
 jobs:
   build-and-push-image:
-    if: ${{ github.event.pull_request.merged }}
+#    if: ${{ github.event.pull_request.merged }}
     runs-on: ubuntu-22.04
 
     steps:
