@@ -45,3 +45,11 @@ Run docker image:
 ```shell
 docker run -p 50041:50041 --name ms-grpc-manager --rm ms-grpc-manager
 ```
+
+**NOTE**: *If you've run docker-dev from the Emb3rs-project repository before, I advise use the embers network 
+in docker run to access PGSQL and change the database settings inside .env to Platform DB.*  
+
+Run docker image with embers network:
+```shell
+docker run -p 50041:50041 --network dev_embers --name ms-grpc-manager --rm ms-grpc-manager
+```

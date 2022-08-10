@@ -27,7 +27,6 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8
 
 COPY --from=build /venv /venv
-RUN echo 'source /venv/bin/activate' >> ~/.bashrc
 
 # Configuring app
 WORKDIR /app
@@ -38,6 +37,8 @@ ENV PYTHONPATH=ms-grpc/plibs:module
 EXPOSE 50051
 
 SHELL [ "/bin/bash", "-c" ]
+RUN echo 'source /venv/bin/activate' >> ~/.bashrc && source ~/.bashrc
+
 ENTRYPOINT source /venv/bin/activate && \
     PYTHONPATH=ms-grpc/plibs:module \
     python -u server.py
