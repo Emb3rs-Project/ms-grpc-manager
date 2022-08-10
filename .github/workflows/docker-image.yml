@@ -14,6 +14,8 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   CTR_USER: ${{ secrets.CTR_USER }}
   CTR_TOKEN: ${{ secrets.CTR_TOKEN }}
+  NEW_CTR_USER: ${{ secrets.NEW_CTR_USER }}
+  NEW_CTR_TOKEN: ${{ secrets.NEW_CTR_TOKEN }}
 
 jobs:
   build-and-push-image:
