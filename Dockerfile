@@ -27,6 +27,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8
 
 COPY --from=build /venv /venv
+RUN echo 'source /venv/bin/activate' >> ~/.bashrc
 
 # Configuring app
 WORKDIR /app
