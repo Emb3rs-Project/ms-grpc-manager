@@ -19,7 +19,7 @@ class Reporter:
     session_uuid: str
 
     def __post_init__(self):
-        db_url = "postgresql+psycopg2://{name}:{password}@{host}:{port}/{db}"
+        db_url = "postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
         self.engine = create_engine(url=db_url.format(
             user=os.getenv('PG_USERNAME'),
             password=os.getenv('PG_PASSWORD'),
