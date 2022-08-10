@@ -39,10 +39,10 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Load submodules
-        run: |
-          git submodule init
-          git submodule update
+#      - name: Load submodules
+#        run: |
+#          git submodule init
+#          git submodule update
 
       - name: Build and Push Docker image
         uses: docker/build-push-action@v3
