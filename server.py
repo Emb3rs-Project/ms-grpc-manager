@@ -10,6 +10,9 @@ from manager.manager_pb2_grpc import ManagerServicer, add_ManagerServicer_to_ser
 from simulations.base_simulation import BaseSimulation
 from simulations.simulation_mapper import SIMULATION_MAPPER
 
+GRPC_STATUS_CODE_OK = 0
+GRPC_STATUS_CODE_CANCELLED = 1
+
 
 class ManagerModule(ManagerServicer):
     def StartSimulation(self, request: StartSimulationRequest, context) -> StartSimulationResponse:
@@ -24,7 +27,8 @@ class ManagerModule(ManagerServicer):
             runner.run()
         except Exception as exc:
             logging.error(f"Exception was raised running server, exc: {exc}")
-            return StartSimulationResponse(status=1)
+            return StartSimulationResponse(status=GRPC_STATUS_CODE_CANCELLED)
+        return StartSimulationResponse(status=GRPC_STATUS_CODE_OK)
 
 
 def serve():
