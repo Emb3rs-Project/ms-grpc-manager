@@ -1,6 +1,9 @@
-from sqlalchemy import Column, ForeignKey, Integer, DateTime, String, JSON
+from sqlalchemy import Column, ForeignKey, Integer, DateTime, String, JSON, create_engine
 from sqlalchemy.orm import declarative_base, relationship
 
+from config.settings import Settings
+
+engine = create_engine(url=Settings.DATABASE_URL)
 Base = declarative_base()
 
 
@@ -16,9 +19,9 @@ class Simulation(Base):
     sessions = relationship("SimulationSession", back_populates="simulation")
     reports = relationship("IntegrationReport", back_populates="simulation")
     results = relationship("SimulationResult", back_populates="simulation")
-    deleted_at = Column(DateTime)
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
+    deleted_at = Column(DateTime)
 
     def __repr__(self) -> str:
         return (
@@ -48,7 +51,6 @@ class IntegrationReport(Base):
     __tablename__ = "integration_reports"
 
     id = Column(Integer, primary_key=True)
-
     simulation_id = Column(Integer, ForeignKey("simulations.id"))
     simulation_uuid = Column(String)
     step_uuid = Column(String)
@@ -73,9 +75,9 @@ class SimulationResult(Base):
 
     id = Column(Integer, primary_key=True)
     simulation_id = Column(Integer, ForeignKey("simulations.id"))
-    simulation = relationship("Simulation", back_populates="results")
     simulation_uuid = Column(String)
     data = Column(JSON)
+    simulation = relationship("Simulation", back_populates="results")
 
     def __repr__(self) -> str:
         return f"IntegrationReport(id={self.id!r}, simulation={self.simulation!r}, data={self.data!r})"

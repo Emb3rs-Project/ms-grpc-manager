@@ -1,16 +1,14 @@
-import os
+import logging
 from concurrent import futures
 
-import dotenv
 import grpc
 import jsonpickle
 
+from config.settings import Settings
 from manager.manager_pb2 import StartSimulationRequest, StartSimulationResponse
 from manager.manager_pb2_grpc import ManagerServicer, add_ManagerServicer_to_server
 from simulations.base_simulation import BaseSimulation
 from simulations.simulation_mapper import SIMULATION_MAPPER
-
-dotenv.load_dotenv()
 
 
 class ManagerModule(ManagerServicer):
@@ -24,7 +22,8 @@ class ManagerModule(ManagerServicer):
 
         try:
             runner.run()
-        except Exception:
+        except Exception as exc:
+            logging.error(f"Exception was raised running server, exc: {exc}")
             return StartSimulationResponse(status=1)
 
 
@@ -32,8 +31,8 @@ def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=100))
     add_ManagerServicer_to_server(ManagerModule(), server)
 
-    server.add_insecure_port(f"{os.getenv('GRPC_HOST')}:{os.getenv('GRPC_PORT')}")
-    print(f"Manager Listening at {os.getenv('GRPC_HOST')}:{os.getenv('GRPC_PORT')}")
+    server.add_insecure_port(f"{Settings.GRPC_HOST}:{Settings.GRPC_PORT}")
+    print(f"Manager Listening at {Settings.GRPC_HOST}:{Settings.GRPC_PORT}")
 
     server.start()
     server.wait_for_termination()

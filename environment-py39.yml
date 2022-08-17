@@ -18,6 +18,10 @@ dependencies:
   - jsonpickle=
   - sqlalchemy=
   - psycopg2=
+  - pytest=
+  - pytest-env=
+  - pytest-dotenv=
+  - pytest-mock=
   - pip:
     - grpcio==1.44.0
     - protobuf==3.20.1

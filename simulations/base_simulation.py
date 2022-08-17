@@ -1,89 +1,90 @@
-import os
-from typing import Any, Dict
+from abc import ABC, abstractmethod
+from typing import Any, Dict, Callable
 
 import grpc
-
 from business.business_pb2_grpc import BusinessModuleStub
 from cf.cf_pb2_grpc import CFModuleStub
 from gis.gis_pb2_grpc import GISModuleStub
 from market.market_pb2_grpc import MarketModuleStub
-from reports.reporter import Reporter
 from teo.teo_pb2_grpc import TEOModuleStub
 
+from config.settings import Settings
+from reports.reporter import Reporter
 
-class BaseSimulation:
 
-    def __init__(self, initial_data: Dict[str, Any], simulation_session: str):
+class BaseSimulation(ABC):
+    __STEP_ERROR_MESSAGES = {
+        grpc.StatusCode.CANCELLED: {"message": "Request has been Cancelled"},
+        grpc.StatusCode.UNAVAILABLE: {"message": "Service is not available"},
+        grpc.StatusCode.UNKNOWN: {"message": "Unknown error"},
+    }
+
+    def __init__(self, initial_data: Dict[str, Any], simulation_session: str) -> None:
         self.initial_data = initial_data
         self.simulation_session = simulation_session
-        self.__stub_factory()
-
-    def __stub_factory(self):
         self.reporter = Reporter(self.simulation_session)
         self.river_data = {}
+        self.__stub_composer()
 
-        self.cf_channel = grpc.insecure_channel(f"{os.getenv('CF_HOST')}:{os.getenv('CF_PORT')}")
-        self.cf = CFModuleStub(self.cf_channel)
-
-        self.gis_channel = grpc.insecure_channel(f"{os.getenv('GIS_HOST')}:{os.getenv('GIS_PORT')}")
-        self.gis = GISModuleStub(self.gis_channel)
-
-        self.teo_channel = grpc.insecure_channel(f"{os.getenv('TEO_HOST')}:{os.getenv('TEO_PORT')}")
-        self.teo = TEOModuleStub(self.teo_channel)
-
-        self.market_channel = grpc.insecure_channel(f"{os.getenv('MM_HOST')}:{os.getenv('MM_PORT')}")
-        self.market = MarketModuleStub(self.market_channel)
-
-        self.business_channel = grpc.insecure_channel(f"{os.getenv('BM_HOST')}:{os.getenv('BM_PORT')}")
-        self.business = BusinessModuleStub(self.business_channel)
-
-    def run(self):
-        self.simulation_started()
+    def run(self) -> None:
+        self.__simulation_started()
         self._run()
-        self.simulation_finished()
+        self.__simulation_finished()
 
-    def _run(self):
-        self.reporter.save_step_error("NOT-DEFINED", "NOT-DEFINED", {},
-                                      {"message": "Simulation Metadata is Not Defined!"})
-
-    def safe_run_step(self, module, function, step):
+    def safe_run_step(self, module: str, function: str, step: Callable) -> bool:
         try:
             step()
-            return True
         except grpc.RpcError as rpc_error:
-            if rpc_error.code() == grpc.StatusCode.CANCELLED:
-                self.reporter.save_step_error(
-                    module=module,
-                    function=function,
-                    input_data={},
-                    errors={"message": "Request has been Cancelled"}
-                )
-            elif rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
-                self.reporter.save_step_error(
-                    module=module,
-                    function=function,
-                    input_data={},
-                    errors={"message": "Service is not available"}
-                )
-            elif rpc_error.code() == grpc.StatusCode.UNKNOWN:
-                self.reporter.save_step_error(
-                    module=module,
-                    function=function,
-                    input_data={},
-                    errors={"message": rpc_error.details()}
-                )
+            error_code = rpc_error.code()
+            if error_message := self.__STEP_ERROR_MESSAGES.get(error_code):
+                if error_code == grpc.StatusCode.UNKNOWN:
+                    error_message["message"] = rpc_error.details()
+                self.reporter.save_step_error(module=module, function=function, input_data={}, errors=error_message)
             return False
         except Exception as e:
-            self.reporter.save_step_error(
-                module=module,
-                function=function,
-                input_data={},
-                errors={"message": str(e)}
-            )
+            self.reporter.save_step_error(module=module, function=function, input_data={}, errors={"message": str(e)})
             return False
+        return True
 
-    def simulation_started(self):
-        self.reporter.save_step_report("SIMULATOR", "SIMULATION STARTED", {}, {})
+    def __simulation_started(self) -> None:
+        self.reporter.save_step_report(
+            module="SIMULATOR", function="SIMULATION STARTED", input_data={}, output_data={}
+        )
 
-    def simulation_finished(self):
-        self.reporter.save_step_report("SIMULATOR", "SIMULATION FINISHED", {}, {})
+    @abstractmethod
+    def _run(self) -> None:
+        self.reporter.save_step_error(
+            "NOT-DEFINED", "NOT-DEFINED", {}, {"message": "Simulation Metadata is Not Defined!"}
+        )
+
+    def __simulation_finished(self) -> None:
+        self.reporter.save_step_report(
+            module="SIMULATOR", function="SIMULATION FINISHED", input_data={}, output_data={}
+        )
+
+    def __stub_composer(self) -> None:
+        self.__cf_stub()
+        self.__gis_stub()
+        self.__teo_stub()
+        self.__market_stub()
+        self.__business_stub()
+
+    def __cf_stub(self) -> None:
+        self.cf_channel = grpc.insecure_channel(target=f"{Settings.CF_HOST}:{Settings.CF_PORT}")
+        self.cf = CFModuleStub(channel=self.cf_channel)
+
+    def __gis_stub(self) -> None:
+        self.gis_channel = grpc.insecure_channel(target=f"{Settings.GIS_HOST}:{Settings.GIS_PORT}")
+        self.gis = GISModuleStub(channel=self.gis_channel)
+
+    def __teo_stub(self) -> None:
+        self.teo_channel = grpc.insecure_channel(target=f"{Settings.TEO_HOST}:{Settings.TEO_PORT}")
+        self.teo = TEOModuleStub(channel=self.teo_channel)
+
+    def __market_stub(self) -> None:
+        self.market_channel = grpc.insecure_channel(target=f"{Settings.MM_HOST}:{Settings.MM_PORT}")
+        self.market = MarketModuleStub(channel=self.market_channel)
+
+    def __business_stub(self) -> None:
+        self.business_channel = grpc.insecure_channel(target=f"{Settings.BM_HOST}:{Settings.BM_PORT}")
+        self.business = BusinessModuleStub(channel=self.business_channel)
