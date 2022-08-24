@@ -24,6 +24,7 @@ class BaseSimulation(ABC):
         self.simulation_session = simulation_session
         self.reporter = Reporter(self.simulation_session)
         self.river_data = {}
+        self.last_request_input_data = {}
         self.__stub_composer()
 
     def run(self) -> None:
@@ -39,10 +40,14 @@ class BaseSimulation(ABC):
             if error_message := self.__STEP_ERROR_MESSAGES.get(error_code):
                 if error_code == grpc.StatusCode.UNKNOWN:
                     error_message["message"] = rpc_error.details()
-                self.reporter.save_step_error(module=module, function=function, input_data={}, errors=error_message)
+                self.reporter.save_step_error(
+                    module=module, function=function, input_data=self.last_request_input_data, errors=error_message
+                )
             return False
         except Exception as e:
-            self.reporter.save_step_error(module=module, function=function, input_data={}, errors={"message": str(e)})
+            self.reporter.save_step_error(
+                module=module, function=function, input_data=self.last_request_input_data, errors={"message": str(e)}
+            )
             return False
         return True
 

@@ -50,11 +50,12 @@ class DemoSimulation(BaseSimulation):
     def __run_cf_convert_sink(self) -> None:
         platform = platform_to_convert_sink(initial_data=self.initial_data)
         convert_sink_request = PlatformOnlyInput(platform=json.dumps(platform))
+        sink_input = {"platform": platform}
+        self.last_request_input_data = sink_input
 
         result = self.cf.convert_sink(convert_sink_request)
         self.river_data['convert_sink'] = result
 
-        sink_input = {"platform": platform}
         sink_output = ConvertSinkOutputModel().from_grpc(result).dict()
         self.reporter.save_step_report(
             module='CF Module', function='convert_sink', input_data=sink_input, output_data=sink_output
@@ -68,11 +69,12 @@ class DemoSimulation(BaseSimulation):
             cf_module=json.dumps(cf_module),
             gis_module=json.dumps({}),
         )
+        source_input = {"platform": platform, "cf_module": cf_module}
+        self.last_request_input_data = source_input
 
         result = self.cf.convert_source(convert_source_request)
         self.river_data['convert_source'] = result
 
-        source_input = {"platform": platform, "cf_module": cf_module}
         source_output = ConvertSourceOutputModel().from_grpc(result).dict()
         self.reporter.save_step_report(
             module='CF Module', function='convert_source', input_data=source_input, output_data=source_output
@@ -87,11 +89,12 @@ class DemoSimulation(BaseSimulation):
             cf_module=json.dumps(cf_module),
             teo_module=json.dumps(teo_module),
         )
+        network_input = {"platform": platform, "cf_module": cf_module, "teo_module": teo_module}
+        self.last_request_input_data = network_input
 
         result = self.gis.create_network(create_network_request)
         self.river_data["create_network"] = result
 
-        network_input = {"platform": platform, "cf_module": cf_module, "teo_module": teo_module}
         network_output = CreateNetworkOutputModel().from_grpc(result).dict()
         self.reporter.save_step_report(
             module="GIS Module", function="create_network", input_data=network_input, output_data=network_output
@@ -108,16 +111,17 @@ class DemoSimulation(BaseSimulation):
             gis_module=json.dumps(gis_module),
             teo_module=json.dumps(teo_module),
         )
-
-        result = self.gis.optimize_network(optimize_network_request)
-        self.river_data["optimize_network"] = result
-
         network_input = {
             "platform": platform,
             "cf_module": cf_module,
             "gis_module": gis_module,
             "teo_module": teo_module,
         }
+        self.last_request_input_data = network_input
+
+        result = self.gis.optimize_network(optimize_network_request)
+        self.river_data["optimize_network"] = result
+
         network_output = OptimizeNetworkOutputModel().from_grpc(result).dict()
         self.reporter.save_step_report(
             module="GIS Module", function="optimize_network", input_data=network_input, output_data=network_output
@@ -132,11 +136,12 @@ class DemoSimulation(BaseSimulation):
             cf_module=json.dumps(cf_module),
             gis_module=json.dumps(gis_module),
         )
+        buildmodel_input = {"platform": platform, "cf_module": cf_module, "gis_module": gis_module}
+        self.last_request_input_data = buildmodel_input
 
         result = self.teo.buildmodel(buildmodel_request)
         self.river_data["buildmodel"] = result
 
-        buildmodel_input = {"platform": platform, "cf_module": cf_module, "gis_module": gis_module}
         buildmodel_output = BuildModelOutputModel().from_grpc(result).dict()
         self.reporter.save_step_report(
             module="TEO Module", function="buildmodel", input_data=buildmodel_input, output_data=buildmodel_output
@@ -153,16 +158,17 @@ class DemoSimulation(BaseSimulation):
             gis_module=json.dumps(gis_module),
             teo_module=json.dumps(teo_module),
         )
-
-        result = self.market.RunLongTermMarket(market_input_request)
-        self.river_data["long_term"] = result
-
         long_term_input = {
             "platform": platform,
             "cf_module": cf_module,
             "gis_module": gis_module,
             "teo_module": teo_module,
         }
+        self.last_request_input_data = long_term_input
+
+        result = self.market.RunLongTermMarket(market_input_request)
+        self.river_data["long_term"] = result
+
         long_term_output = LongTermOutputModel().from_grpc(result).dict()
         self.reporter.save_step_report(
             module="Market Module", function="long_term", input_data=long_term_input, output_data=long_term_output
@@ -179,16 +185,17 @@ class DemoSimulation(BaseSimulation):
             teo_module=json.dumps(teo_module),
             market_module=json.dumps(market_module),
         )
-
-        result = self.business.bm(feasability_request)
-        self.river_data["feasability"] = result
-
         feasability_input = {
             "platform": platform,
             "gis_module": gis_module,
             "teo_module": teo_module,
             "market_module": market_module,
         }
+        self.last_request_input_data = feasability_input
+
+        result = self.business.bm(feasability_request)
+        self.river_data["feasability"] = result
+
         feasability_output = BMOutputModel().from_grpc(result).dict()
         self.reporter.save_step_report(
             module="Business Module",
