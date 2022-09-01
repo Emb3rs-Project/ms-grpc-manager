@@ -236,7 +236,7 @@ def create_default_technology(name):
 def platform_technologies_to_buildmodel(river_data):
     return list(
         map(
-            lambda x: create_default_technology(x),
+            lambda name: create_default_technology(name=name),
             cf_module_to_buildmodel_sets_technologies(river_data=river_data),
         )
     )

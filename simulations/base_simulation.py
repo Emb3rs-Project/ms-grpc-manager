@@ -18,6 +18,10 @@ class BaseSimulation(ABC):
         grpc.StatusCode.UNAVAILABLE: {"message": "Service is not available"},
         grpc.StatusCode.UNKNOWN: {"message": "Unknown error"},
     }
+    __GRPC_CHANNEL_OPTIONS = [
+        ('grpc.max_send_message_length', Settings.GRPC_MAX_MESSAGE_LENGTH),
+        ('grpc.max_receive_message_length', Settings.GRPC_MAX_MESSAGE_LENGTH)
+    ]
 
     def __init__(self, initial_data: Dict[str, Any], simulation_session: str) -> None:
         self.initial_data = initial_data
@@ -75,21 +79,36 @@ class BaseSimulation(ABC):
         self.__business_stub()
 
     def __cf_stub(self) -> None:
-        self.cf_channel = grpc.insecure_channel(target=f"{Settings.CF_HOST}:{Settings.CF_PORT}")
+        self.cf_channel = grpc.insecure_channel(
+            target=f"{Settings.CF_HOST}:{Settings.CF_PORT}",
+            options=self.__GRPC_CHANNEL_OPTIONS
+        )
         self.cf = CFModuleStub(channel=self.cf_channel)
 
     def __gis_stub(self) -> None:
-        self.gis_channel = grpc.insecure_channel(target=f"{Settings.GIS_HOST}:{Settings.GIS_PORT}")
+        self.gis_channel = grpc.insecure_channel(
+            target=f"{Settings.GIS_HOST}:{Settings.GIS_PORT}",
+            options=self.__GRPC_CHANNEL_OPTIONS
+        )
         self.gis = GISModuleStub(channel=self.gis_channel)
 
     def __teo_stub(self) -> None:
-        self.teo_channel = grpc.insecure_channel(target=f"{Settings.TEO_HOST}:{Settings.TEO_PORT}")
+        self.teo_channel = grpc.insecure_channel(
+            target=f"{Settings.TEO_HOST}:{Settings.TEO_PORT}",
+            options=self.__GRPC_CHANNEL_OPTIONS
+        )
         self.teo = TEOModuleStub(channel=self.teo_channel)
 
     def __market_stub(self) -> None:
-        self.market_channel = grpc.insecure_channel(target=f"{Settings.MM_HOST}:{Settings.MM_PORT}")
+        self.market_channel = grpc.insecure_channel(
+            target=f"{Settings.MM_HOST}:{Settings.MM_PORT}",
+            options=self.__GRPC_CHANNEL_OPTIONS
+        )
         self.market = MarketModuleStub(channel=self.market_channel)
 
     def __business_stub(self) -> None:
-        self.business_channel = grpc.insecure_channel(target=f"{Settings.BM_HOST}:{Settings.BM_PORT}")
+        self.business_channel = grpc.insecure_channel(
+            target=f"{Settings.BM_HOST}:{Settings.BM_PORT}",
+            options=self.__GRPC_CHANNEL_OPTIONS
+        )
         self.business = BusinessModuleStub(channel=self.business_channel)

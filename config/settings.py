@@ -11,6 +11,7 @@ class Settings:
     GRPC_TRACE = os.getenv("GRPC_TRACE")
     GRPC_HOST = os.getenv("GRPC_HOST", "0.0.0.0")
     GRPC_PORT = os.getenv("GRPC_PORT", "50041")
+    GRPC_MAX_MESSAGE_LENGTH = -1  # 16 * 1024 * 1024
 
     # Comunication
     CF_HOST = os.getenv("CF_HOST")
