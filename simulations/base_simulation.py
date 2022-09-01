@@ -22,6 +22,8 @@ class BaseSimulation(ABC):
         ('grpc.max_send_message_length', Settings.GRPC_MAX_MESSAGE_LENGTH),
         ('grpc.max_receive_message_length', Settings.GRPC_MAX_MESSAGE_LENGTH)
     ]
+    __DEFAULT_GRPC_ERROR = {"message": "Unknown error and code"}
+    __DEFAULT_SERVER_ERROR = {"message": "Internal server error"}
 
     def __init__(self, initial_data: Dict[str, Any], simulation_session: str) -> None:
         self.initial_data = initial_data
@@ -40,17 +42,18 @@ class BaseSimulation(ABC):
         try:
             step()
         except grpc.RpcError as rpc_error:
-            error_code = rpc_error.code()
-            if error_message := self.__STEP_ERROR_MESSAGES.get(error_code):
-                if error_code == grpc.StatusCode.UNKNOWN:
-                    error_message["message"] = rpc_error.details()
-                self.reporter.save_step_error(
-                    module=module, function=function, input_data=self.last_request_input_data, errors=error_message
-                )
-            return False
-        except Exception as e:
+            error_code = rpc_error.code()  # noqa
+            error_message = self.__STEP_ERROR_MESSAGES.get(error_code, self.__DEFAULT_GRPC_ERROR)
+            error_message["detail"] = rpc_error.details()  # noqa
             self.reporter.save_step_error(
-                module=module, function=function, input_data=self.last_request_input_data, errors={"message": str(e)}
+                module=module, function=function, input_data=self.last_request_input_data, errors=error_message
+            )
+            return False
+        except Exception as exc:
+            error_message = self.__DEFAULT_SERVER_ERROR
+            error_message["detail"] = str(exc)
+            self.reporter.save_step_error(
+                module=module, function=function, input_data=self.last_request_input_data, errors=error_message
             )
             return False
         return True
