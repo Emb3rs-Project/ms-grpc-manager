@@ -33,16 +33,32 @@ from simulations.converters.teo_converter import (
 
 
 class DemoSimulation(BaseSimulation):
+    _DEFAULT_STEPS = (
+        "convert_sink",
+        "convert_source",
+        "create_network",
+        "optimize_network",
+        "buildmodel",
+        "long_term",
+        "feasability",
+    )
+
     def _run(self) -> None:
-        pipeline = [
-            {"module": "CF Module", "function": "convert_sink", "step": self.__run_cf_convert_sink},
-            {"module": "CF Module", "function": "convert_source", "step": self.__run_cf_convert_source},
-            {"module": "GIS Module", "function": "create_network", "step": self.__run_gis_create_network},
-            {"module": "GIS Module", "function": "optimize_network", "step": self.__run_gis_optimize_network},
-            {"module": "TEO Module", "function": "buildmodel", "step": self.__run_teo_buildmodel},
-            {"module": "Market Module", "function": "long_term", "step": self.__run_market_long_term},
-            {"module": "Business Module", "function": "feasability", "step": self.__run_business_feasability},
-        ]
+        step_by_function_name = {
+            "convert_sink": {"module": "CF Module", "function": "convert_sink", "step": self.__run_cf_convert_sink},
+            "convert_source": {"module": "CF Module", "function": "convert_source", "step": self.__run_cf_convert_source},  # noqa
+            "create_network": {"module": "GIS Module", "function": "create_network", "step": self.__run_gis_create_network},  # noqa
+            "optimize_network": {"module": "GIS Module", "function": "optimize_network", "step": self.__run_gis_optimize_network},  # noqa
+            "buildmodel": {"module": "TEO Module", "function": "buildmodel", "step": self.__run_teo_buildmodel},
+            "long_term": {"module": "Market Module", "function": "long_term", "step": self.__run_market_long_term},
+            "feasability": {"module": "Business Module", "function": "feasability", "step": self.__run_business_feasability},  # noqa
+        }
+        steps = self.simulation_steps or self._DEFAULT_STEPS
+        try:
+            pipeline = tuple(step_by_function_name[step_name] for step_name in steps)
+        except KeyError as exc:
+            raise Exception(f"Step {exc} not exist for this simulation")
+
         for step in pipeline:
             if not self.safe_run_step(**step):
                 break

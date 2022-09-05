@@ -21,7 +21,10 @@ class ManagerModule(ManagerServicer):
         initial_data = jsonpickle.decode(request.initial_data)
 
         simulation_class = SIMULATION_MAPPER.get(simulation_metadata["identifier"], BaseSimulation)
-        runner = simulation_class(initial_data=initial_data, simulation_session=simulation_uuid)
+        simulation_steps = simulation_metadata.get("steps")
+        runner = simulation_class(
+            initial_data=initial_data, simulation_session=simulation_uuid, simulation_steps=simulation_steps
+        )
 
         try:
             runner.run()

@@ -7,6 +7,7 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.orm.session import Session
 
+from config.settings import Settings
 from reports.db_models import Base, engine, Simulation, SimulationSession
 
 
@@ -57,6 +58,6 @@ def simulation_session_in_database(sqlalchemy_database, simulation_in_database: 
 
 @pytest.fixture(scope="session")
 def simulation_data() -> Dict:
-    with open("./assets/simulation_data.json") as file:
+    with open(f"{Settings.BASE_PATH}/tests/assets/simulation_data.json") as file:
         data = json.loads(file.read())
     return data

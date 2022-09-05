@@ -6,6 +6,9 @@ dotenv.load_dotenv()
 
 
 class Settings:
+    # Filesystem
+    BASE_PATH = os.path.dirname(os.path.dirname(__file__))
+
     # Server
     GRPC_VERBOSITY = os.getenv("GRPC_VERBOSITY")
     GRPC_TRACE = os.getenv("GRPC_TRACE")
