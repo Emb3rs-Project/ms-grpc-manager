@@ -26,7 +26,7 @@ def cf_module_to_create_network(river_data):
     create_network = {
         "n_demand_list": river_convert_sink.n_demand_list,
         "n_supply_list": river_convert_source.n_supply_list,
-        "n_grid_specific": {},
+        "n_grid_specific": river_convert_sink.n_grid_specific,
     }
     return create_network
 
