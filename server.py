@@ -30,7 +30,7 @@ class ManagerModule(ManagerServicer):
             runner.run()
         except Exception as exc:
             logging.error(f"Exception was raised running server, exc: {exc}")
-            return StartSimulationResponse(status=GRPC_STATUS_CODE_CANCELLED)
+            raise exc
         return StartSimulationResponse(status=GRPC_STATUS_CODE_OK)
 
 

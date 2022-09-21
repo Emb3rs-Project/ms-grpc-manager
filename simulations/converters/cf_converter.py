@@ -4,10 +4,10 @@ from typing import Dict
 from cf.cf_models import ConvertSinkOutputModel, ConvertSourceOutputModel
 
 FUELS_DATA = {
-    "natural_gas": {"price": 0.101, "co2_emissions": 0.209923664},
+    "natural_gas": {"price": 0.02274101807185543, "co2_emissions": 0.209923664},
     "biomass": {"price": 0.043199654, "co2_emissions": 0.0108},
-    "electricity": {"price": 0.117, "co2_emissions": 0.623},
-    "fuel_oil": {"price": 0.179, "co2_emissions": 0.266272189},
+    "electricity": {"price": 0.089, "co2_emissions": 0.606},
+    "fuel_oil": {"price": 0.047392344, "co2_emissions": 0.266272189},
 }
 
 
@@ -66,3 +66,27 @@ def platform_to_orc_convert(initial_data):
     convert_source = platform_to_convert_source(initial_data=initial_data)
     output = convert_source["group_of_sources"][0]
     return output
+
+
+def platform_to_convert_pinch(initial_data):
+    convert_source = platform_to_convert_source(initial_data=initial_data)
+    sources = convert_source["group_of_sources"]
+    streams = [_build_stream(stream=stream) for source in sources for stream in source["streams"]]
+
+    output = {
+        "streams_to_analyse": [stream["id"] for stream in streams],  # noqa list - streams id to analyse
+        "pinch_delta_T_min": 20,  # noqa float - Minimum delta temperature for pinch analysis [ºC]
+        "all_input_objects": streams,  # noqa list - equipments (check Source/characterization/Generate_Equipment), processes (check Source/characterization/Process/process), isolated streams (check General/Simple_User/isolated_stream)
+        "lifetime": None,  # int, optional - Heat exchangers lifetime. DEFAULT=20
+        "fuels_data": sources[0]["fuels_data"] if len(sources) > 0 else FUELS_DATA,  # noqa dict - Fuels price and CO2 emission
+        "number_output_options": None,  # int, optional - Number of solutions of each category to return. DEFAULT=3
+        "interest_rate": 0.04,  # float, optional - Interest rate considered for BM
+    }
+    return output
+
+
+def _build_stream(stream: dict) -> dict:
+    stream["name"] = f"stream{stream['id']}"
+    stream["fuel"] = stream.get("fuel", "none")
+    stream["eff_equipment"] = stream.get("eff_equipment")
+    return stream

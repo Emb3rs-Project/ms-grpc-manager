@@ -61,3 +61,17 @@ def simulation_data() -> Dict:
     with open(f"{Settings.BASE_PATH}/tests/assets/simulation_data.json") as file:
         data = json.loads(file.read())
     return data
+
+
+@pytest.fixture(scope="session")
+def pinch_simulation_data() -> Dict:
+    with open(f"{Settings.BASE_PATH}/tests/assets/pinch_simulation_data.json") as file:
+        data = json.loads(file.read())
+    return data
+
+
+@pytest.fixture(scope="session")
+def convert_pinch_input_data() -> Dict:
+    with open(f"{Settings.BASE_PATH}/tests/assets/convert_pinch_input.json") as file:
+        data = json.loads(file.read())
+    return data
