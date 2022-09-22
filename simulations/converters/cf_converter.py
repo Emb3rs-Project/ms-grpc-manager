@@ -67,27 +67,28 @@ def platform_to_orc_convert(initial_data):
     input_data = initial_data["input_data"]
 
     output = convert_source["group_of_sources"][0]
+    output["get_best_number"] = input_data["get_best_number"]
+    output["orc_years_working"] = input_data["orc_years_working"]
     output["orc_T_evap"] = input_data["orc_T_evap"]
     output["orc_T_cond"] = input_data["orc_T_cond"]
-    output["orc_years_working"] = input_data["orc_years_working"]
-    output["get_best_number"] = input_data["get_best_number"]
 
     return output
 
 
 def platform_to_convert_pinch(initial_data):
+    pinch_analysis_data = initial_data["input_data"]["pinch_analysis"]
     convert_source = platform_to_convert_source(initial_data=initial_data)
     sources = convert_source["group_of_sources"]
     streams = [_build_stream(stream=stream) for source in sources for stream in source["streams"]]
 
     output = {
-        "streams_to_analyse": [stream["id"] for stream in streams],  # noqa list - streams id to analyse
-        "pinch_delta_T_min": 20,  # noqa float - Minimum delta temperature for pinch analysis [ºC]
-        "all_input_objects": streams,  # noqa list - equipments (check Source/characterization/Generate_Equipment), processes (check Source/characterization/Process/process), isolated streams (check General/Simple_User/isolated_stream)
-        "lifetime": None,  # int, optional - Heat exchangers lifetime. DEFAULT=20
-        "fuels_data": sources[0]["fuels_data"] if len(sources) > 0 else FUELS_DATA,  # noqa dict - Fuels price and CO2 emission
-        "number_output_options": None,  # int, optional - Number of solutions of each category to return. DEFAULT=3
-        "interest_rate": 0.04,  # float, optional - Interest rate considered for BM
+        "streams_to_analyse": [stream["id"] for stream in streams],
+        "pinch_delta_T_min": pinch_analysis_data["pinch_delta_T_min"],
+        "all_input_objects": streams,
+        "lifetime": pinch_analysis_data["lifetime"],
+        "fuels_data": sources[0]["fuels_data"] if len(sources) > 0 else FUELS_DATA,
+        "number_output_options": pinch_analysis_data["number_output_options"],
+        "interest_rate": pinch_analysis_data["interest_rate"],
     }
     return output
 
