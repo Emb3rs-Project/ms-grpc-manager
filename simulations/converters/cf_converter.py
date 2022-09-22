@@ -64,7 +64,14 @@ def cf_module_to_convert_source(river_data: Dict, **_):
 
 def platform_to_orc_convert(initial_data):
     convert_source = platform_to_convert_source(initial_data=initial_data)
+    input_data = initial_data["input_data"]
+
     output = convert_source["group_of_sources"][0]
+    output["orc_T_evap"] = input_data["orc_T_evap"]
+    output["orc_T_cond"] = input_data["orc_T_cond"]
+    output["orc_years_working"] = input_data["orc_years_working"]
+    output["get_best_number"] = input_data["get_best_number"]
+
     return output
 
 
