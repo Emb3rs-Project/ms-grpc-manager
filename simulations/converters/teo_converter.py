@@ -161,7 +161,7 @@ def cf_module_to_buildmodel_technologies_cf(river_data):
                         "input_fuel": None,
                         "output_fuel": stream["output_fuel"],
                         "output": stream["output"],
-                        "max_capacity": 999999999,
+                        "max_capacity": stream.get("max_stream_capacity", 999999999),
                         "turnkey_a": 0,
                         "om_fix": 0,
                         "om_var": 0,
