@@ -7,6 +7,7 @@ def platform_to_financial_feasability(initial_data):
     input_data = initial_data["input_data"]
     feasability = {
         "rls": input_data["rls"],
+        "rls_map": input_data["rls_map"],
         "discountrate_i": input_data["discount_rate"],
         "projectduration": input_data["project_duration"],
         "actorshare": input_data["actorshare"],
