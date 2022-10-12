@@ -30,3 +30,6 @@ class Settings:
 
     # Database
     DATABASE_URL = os.getenv("DATABASE_URL")
+
+    # Feature Toggle
+    GIS_TEO_ITERATION_MODE = True if os.getenv("GIS_TEO_ITERATION_MODE") in ("1", "True", "true") else False

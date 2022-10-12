@@ -35382,6 +35382,7 @@
         ["sink 10", "sink 10 ext tech"],
         ["sink 11", "sink 11 ext tech"]
       ],
+      "rls_map": [],
       "cost": null,
       "gmax": null,
       "lmax": null,

@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 
 from business.business_models import BMOutputModel
 from business.business_pb2 import BMInput
@@ -11,6 +12,7 @@ from market.market_pb2 import MarketInputRequest
 from teo.teo_models import BuildModelOutputModel
 from teo.teo_pb2 import BuildModelInput
 
+from config.settings import Settings
 from simulations.base_simulation import BaseSimulation
 from simulations.converters.business_converter import (
     platform_to_financial_feasability, gis_module_to_financial_feasability, teo_module_to_financial_feasability,
@@ -96,7 +98,7 @@ class DemoSimulation(BaseSimulation):
             module='CF Module', function='convert_source', input_data=source_input, output_data=source_output
         )
 
-    def __run_gis_create_network(self) -> None:
+    def __run_gis_create_network(self, iteration_mode: bool = False) -> None:
         platform = platform_to_create_network(initial_data=self.initial_data)
         cf_module = cf_module_to_create_network(river_data=self.river_data)
         teo_module = teo_module_to_create_network(river_data=self.river_data)
@@ -111,12 +113,13 @@ class DemoSimulation(BaseSimulation):
         result = self.gis.create_network(create_network_request)
         self.river_data["create_network"] = result
 
-        network_output = CreateNetworkOutputModel().from_grpc(result).dict()
-        self.reporter.save_step_report(
-            module="GIS Module", function="create_network", input_data=network_input, output_data=network_output
-        )
+        if not iteration_mode:
+            network_output = CreateNetworkOutputModel().from_grpc(result).dict()
+            self.reporter.save_step_report(
+                module="GIS Module", function="create_network", input_data=network_input, output_data=network_output
+            )
 
-    def __run_gis_optimize_network(self) -> None:
+    def __run_gis_optimize_network(self, iteration_mode: bool = False) -> None:
         platform = platform_to_optimize_network(initial_data=self.initial_data)
         cf_module = cf_module_to_optimize_network(river_data=self.river_data)
         teo_module = teo_module_to_optimize_network(river_data=self.river_data)
@@ -138,29 +141,58 @@ class DemoSimulation(BaseSimulation):
         result = self.gis.optimize_network(optimize_network_request)
         self.river_data["optimize_network"] = result
 
-        network_output = OptimizeNetworkOutputModel().from_grpc(result).dict()
-        self.reporter.save_step_report(
-            module="GIS Module", function="optimize_network", input_data=network_input, output_data=network_output
-        )
+        if not iteration_mode:
+            network_output = OptimizeNetworkOutputModel().from_grpc(result).dict()
+            self.reporter.save_step_report(
+                module="GIS Module", function="optimize_network", input_data=network_input, output_data=network_output
+            )
 
     def __run_teo_buildmodel(self) -> None:
-        platform = platform_to_buildmodel(initial_data=self.initial_data, river_data=self.river_data)
-        cf_module = cf_module_to_buildmodel(river_data=self.river_data)
-        gis_module = gis_module_to_buildmodel(river_data=self.river_data)
-        buildmodel_request = BuildModelInput(
-            platform=json.dumps(platform),
-            cf_module=json.dumps(cf_module),
-            gis_module=json.dumps(gis_module),
-        )
-        buildmodel_input = {"platform": platform, "cf_module": cf_module, "gis_module": gis_module}
-        self.last_request_input_data = buildmodel_input
+        if Settings.GIS_TEO_ITERATION_MODE is False:
+            return self.__run_simple_teo_buildmodel()
 
-        result = self.teo.buildmodel(buildmodel_request)
-        self.river_data["buildmodel"] = result
+        result = None
+        buildmodel_input = None
+
+        iterations = 0
+        iteration_mode = True
+        last_losses_in_kw = None
+        while iteration_mode:
+            if last_losses_in_kw is not None:
+                iterations += 1
+                self.__run_gis_create_network(iteration_mode=True)
+                self.__run_gis_optimize_network(iteration_mode=True)
+                losses_in_kw = gis_module_to_buildmodel(river_data=self.river_data)["losses_in_kw"]
+
+                losses_in_kw_difference = abs(losses_in_kw - last_losses_in_kw)
+                coverage_percent = losses_in_kw_difference / last_losses_in_kw * 100
+                if coverage_percent < 5:
+                    iteration_mode = False
+
+            platform = platform_to_buildmodel(initial_data=self.initial_data, river_data=self.river_data)
+            cf_module = cf_module_to_buildmodel(river_data=self.river_data)
+            gis_module = gis_module_to_buildmodel(river_data=self.river_data)
+            buildmodel_request = BuildModelInput(
+                platform=json.dumps(platform),
+                cf_module=json.dumps(cf_module),
+                gis_module=json.dumps(gis_module),
+            )
+            buildmodel_input = {"platform": platform, "cf_module": cf_module, "gis_module": gis_module}
+            self.last_request_input_data = buildmodel_input
+
+            last_losses_in_kw = deepcopy(gis_module["losses_in_kw"])
+            result = self.teo.buildmodel(buildmodel_request)
+            self.river_data["buildmodel"] = result
+
+        if result is None or buildmodel_input is None:
+            raise Exception(f"TEO Iteration with result value = ({result}) and input value = ({buildmodel_input})")
 
         buildmodel_output = BuildModelOutputModel().from_grpc(result).dict()
         self.reporter.save_step_report(
-            module="TEO Module", function="buildmodel", input_data=buildmodel_input, output_data=buildmodel_output
+            module="TEO Module",
+            function="buildmodel",
+            input_data={**buildmodel_input, "iterations": iterations},
+            output_data=buildmodel_output,
         )
 
     def __run_market_long_term(self) -> None:
@@ -218,4 +250,24 @@ class DemoSimulation(BaseSimulation):
             function="feasability",
             input_data=feasability_input,
             output_data=feasability_output,
+        )
+
+    def __run_simple_teo_buildmodel(self) -> None:
+        platform = platform_to_buildmodel(initial_data=self.initial_data, river_data=self.river_data)
+        cf_module = cf_module_to_buildmodel(river_data=self.river_data)
+        gis_module = gis_module_to_buildmodel(river_data=self.river_data)
+        buildmodel_request = BuildModelInput(
+            platform=json.dumps(platform),
+            cf_module=json.dumps(cf_module),
+            gis_module=json.dumps(gis_module),
+        )
+        buildmodel_input = {"platform": platform, "cf_module": cf_module, "gis_module": gis_module}
+        self.last_request_input_data = buildmodel_input
+
+        result = self.teo.buildmodel(buildmodel_request)
+        self.river_data["buildmodel"] = result
+
+        buildmodel_output = BuildModelOutputModel().from_grpc(result).dict()
+        self.reporter.save_step_report(
+            module="TEO Module", function="buildmodel", input_data=buildmodel_input, output_data=buildmodel_output
         )

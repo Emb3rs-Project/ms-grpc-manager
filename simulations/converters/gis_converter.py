@@ -27,12 +27,17 @@ def cf_module_to_create_network(river_data):
         "n_demand_list": river_convert_sink.n_demand_list,
         "n_supply_list": river_convert_source.n_supply_list,
         "n_grid_specific": river_convert_sink.n_grid_specific,
+        "n_thermal_storage": river_convert_sink.n_thermal_storage,
     }
     return create_network
 
 
 def teo_module_to_create_network(river_data):
-    return {"ex_cap": []}
+    optimize_network = {"ex_cap": []}
+    if buildmodel := river_data.get("buildmodel"):
+        river_buildmodel = BuildModelOutputModel().from_grpc(buildmodel)
+        optimize_network["ex_cap"] = river_buildmodel.ex_capacities
+    return optimize_network
 
 
 def platform_to_optimize_network(initial_data):
@@ -65,12 +70,13 @@ def platform_to_optimize_network(initial_data):
 
 
 def cf_module_to_optimize_network(river_data):
-    # IF OK TURN CREATE AND OPTIMIZE TO ONE
     river_convert_sink = ConvertSinkOutputModel().from_grpc(river_data["convert_sink"])
     river_convert_source = ConvertSourceOutputModel().from_grpc(river_data["convert_source"])
     optimize_network = {
         "n_demand_list": river_convert_sink.n_demand_list,
         "n_supply_list": river_convert_source.n_supply_list,
+        "n_grid_specific": river_convert_sink.n_grid_specific,
+        "n_thermal_storage": river_convert_sink.n_thermal_storage,
     }
     return optimize_network
 
@@ -79,10 +85,10 @@ def teo_module_to_optimize_network(river_data):
     optimize_network = {"ex_cap": []}
     if buildmodel := river_data.get("buildmodel"):
         river_buildmodel = BuildModelOutputModel().from_grpc(buildmodel)
-        optimize_network["ex_cap"] = river_buildmodel["ex_capacities"]
+        optimize_network["ex_cap"] = river_buildmodel.ex_capacities
     return optimize_network
 
 
-def gis_module_to_optimize_network(initial_data, river_data):
+def gis_module_to_optimize_network(initial_data, river_data):  # noqa
     river_create_network = CreateNetworkOutputModel().from_grpc(river_data["create_network"])
     return river_create_network.dict()
