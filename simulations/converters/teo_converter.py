@@ -7,6 +7,7 @@ def gis_module_to_buildmodel(river_data):
     buildmodel = {
         "losses_in_kw": river_optimize_network.losses_cost_kw["losses_in_kw"],
         "cost_in_kw": river_optimize_network.losses_cost_kw["cost_in_kw"],
+        "names": river_optimize_network.names_dict,
     }
     return buildmodel
 
