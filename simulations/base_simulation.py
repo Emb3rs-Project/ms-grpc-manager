@@ -8,7 +8,7 @@ from gis.gis_pb2_grpc import GISModuleStub
 from market.market_pb2_grpc import MarketModuleStub
 from teo.teo_pb2_grpc import TEOModuleStub
 
-from config.settings import Settings
+from config.settings import Settings, Solver
 from reports.reporter import Reporter
 
 
@@ -25,10 +25,17 @@ class BaseSimulation(ABC):
     __DEFAULT_GRPC_ERROR = {"message": "Unknown error and code"}
     __DEFAULT_SERVER_ERROR = {"message": "Internal server error"}
 
-    def __init__(self, initial_data: Dict[str, Any], simulation_session: str, simulation_steps: list = None) -> None:
+    def __init__(
+        self,
+        initial_data: Dict[str, Any],
+        simulation_session: str,
+        simulation_steps: list = None,
+        simulation_solver: Solver = None,
+    ) -> None:
         self.initial_data = initial_data
         self.simulation_session = simulation_session
         self.simulation_steps = simulation_steps
+        self.simulation_solver = simulation_solver or Settings.DEFAULT_SIMULATION_SOLVER
         self.reporter = Reporter(self.simulation_session)
         self.river_data = {}
         self.last_request_input_data = {}

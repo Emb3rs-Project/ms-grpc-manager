@@ -1,5 +1,6 @@
 import pytest
 
+from config.settings import Solver
 from reports.db_models import SimulationSession
 from simulations.base_simulation import BaseSimulation
 from simulations.demo_simulation import DemoSimulation
@@ -66,3 +67,22 @@ def test_demo_simulation_run_with_invalid_simulation_steps_should_raise_exceptio
         demo.run()
 
     assert str(exc.value) == "Step 'any_simulation_that_not_exist' not exist for this simulation"
+
+
+@pytest.mark.demo
+def test_demo_simulation_run_with_scip_solver(simulation_session_in_database: SimulationSession, simulation_data: dict):
+    simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
+    demo = DemoSimulation(
+        initial_data=simulation_data["initialData"],
+        simulation_session=simulation_session_in_database.simulation_uuid,
+        simulation_solver=Solver.SCIP,
+    )
+
+    assert demo.run() is None
+    assert demo.river_data.get("convert_sink") is not None
+    assert demo.river_data.get("convert_source") is not None
+    assert demo.river_data.get("create_network") is not None
+    assert demo.river_data.get("optimize_network") is not None
+    assert demo.river_data.get("buildmodel") is not None
+    assert demo.river_data.get("long_term") is not None
+    assert demo.river_data.get("feasability") is not None

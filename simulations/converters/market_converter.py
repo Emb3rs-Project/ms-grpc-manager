@@ -1,4 +1,5 @@
 from cf.cf_models import ConvertSinkOutputModel, ConvertSourceOutputModel
+from config.settings import Solver
 from gis.gis_models import OptimizeNetworkOutputModel
 from teo.teo_models import BuildModelOutputModel
 
@@ -19,8 +20,11 @@ def teo_module_to_short_term(river_data):
     pass
 
 
-def platform_to_long_term(initial_data):
-    return initial_data["input_data"]["user"]
+def platform_to_long_term(initial_data, solver: Solver = None):
+    long_term = initial_data["input_data"]["user"]
+    if isinstance(solver, Solver):
+        long_term["solver"] = solver.value
+    return long_term
 
 
 def cf_module_to_long_term(river_data):

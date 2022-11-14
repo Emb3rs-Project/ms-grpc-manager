@@ -1,8 +1,14 @@
 import os
+from enum import Enum
 
 import dotenv
 
 dotenv.load_dotenv()
+
+
+class Solver(str, Enum):
+    GUROBI = "GUROBI"
+    SCIP = "SCIP"
 
 
 class Settings:
@@ -30,6 +36,9 @@ class Settings:
 
     # Database
     DATABASE_URL = os.getenv("DATABASE_URL")
+
+    # Simulation
+    DEFAULT_SIMULATION_SOLVER = Solver(os.getenv("DEFAULT_SIMULATION_SOLVER", "GUROBI"))
 
     # Feature Toggle
     GIS_TEO_ITERATION_MODE = True if os.getenv("GIS_TEO_ITERATION_MODE") in ("1", "True", "true") else False

@@ -87,7 +87,11 @@ class ExternalNewDHN(BaseSimulation):
         self.reporter.save_step_report(module="GIS Module", function="create_network", input_data={}, output_data={})
 
     def __run_teo_buildmodel(self):
-        platform = platform_to_buildmodel(initial_data=self.initial_data, river_data=self.river_data)
+        platform = platform_to_buildmodel(
+            initial_data=self.initial_data,
+            river_data=self.river_data,
+            solver=self.simulation_solver
+        )
         cf_module = cf_module_to_buildmodel(river_data=self.river_data)
         gis_module = gis_module_to_buildmodel(river_data=self.river_data)
         build_model_request = BuildModelInput(

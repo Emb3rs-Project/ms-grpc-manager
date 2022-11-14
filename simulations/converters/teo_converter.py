@@ -1,6 +1,8 @@
 from cf.cf_models import ConvertSinkOutputModel, ConvertSourceOutputModel
 from gis.gis_models import OptimizeNetworkOutputModel
 
+from config.settings import Solver
+
 
 def gis_module_to_buildmodel(river_data):
     river_optimize_network = OptimizeNetworkOutputModel().from_grpc(river_data["optimize_network"])
@@ -243,7 +245,7 @@ def platform_technologies_to_buildmodel(river_data):
     )
 
 
-def platform_to_buildmodel(initial_data, river_data):
+def platform_to_buildmodel(initial_data, river_data, solver: Solver = None):
     platform_technologies = platform_technologies_to_buildmodel(river_data=river_data)
     input_data = initial_data["input_data"]
     platform_sets = input_data["platform_sets"]
@@ -268,4 +270,6 @@ def platform_to_buildmodel(initial_data, river_data):
             } for storage in platform_storages
         ],
     }
+    if isinstance(solver, Solver):
+        buildmodel["solver"] = solver.value
     return buildmodel

@@ -4,7 +4,7 @@ from concurrent import futures
 import grpc
 import jsonpickle
 
-from config.settings import Settings
+from config.settings import Settings, Solver
 from manager.manager_pb2 import StartSimulationRequest, StartSimulationResponse
 from manager.manager_pb2_grpc import ManagerServicer, add_ManagerServicer_to_server
 from simulations.base_simulation import BaseSimulation
@@ -22,14 +22,27 @@ class ManagerModule(ManagerServicer):
 
         simulation_class = SIMULATION_MAPPER.get(simulation_metadata["identifier"], BaseSimulation)
         simulation_steps = simulation_metadata.get("steps")
+        simulation_solver = simulation_metadata.get("solver")
+
+        if simulation_solver is not None:
+            try:
+                simulation_solver = Solver(simulation_solver)
+            except (KeyError, ValueError) as exc:
+                message = f"Solver chosed is not valid: {exc}"
+                logging.error(message)
+                raise Exception(message)
+
         runner = simulation_class(
-            initial_data=initial_data, simulation_session=simulation_uuid, simulation_steps=simulation_steps
+            initial_data=initial_data,
+            simulation_session=simulation_uuid,
+            simulation_steps=simulation_steps,
+            simulation_solver=simulation_solver,
         )
 
         try:
             runner.run()
         except Exception as exc:
-            logging.error(f"Exception was raised running server, exc: {exc}")
+            logging.error(f"Exception raised running server, exc: {exc}")
             raise exc
         return StartSimulationResponse(status=GRPC_STATUS_CODE_OK)
 

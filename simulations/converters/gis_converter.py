@@ -1,4 +1,5 @@
 from cf.cf_models import ConvertSinkOutputModel, ConvertSourceOutputModel
+from config.settings import Solver
 from gis.gis_models import CreateNetworkOutputModel
 from teo.teo_models import BuildModelOutputModel
 
@@ -40,7 +41,7 @@ def teo_module_to_create_network(river_data):
     return optimize_network
 
 
-def platform_to_optimize_network(initial_data):
+def platform_to_optimize_network(initial_data, solver: Solver = None):
     input_data = initial_data["input_data"]
     optimize_network = {
         "network_resolution": input_data["network_resolution"],
@@ -66,6 +67,8 @@ def platform_to_optimize_network(initial_data):
         "surface_losses_dict": input_data.get("surface_losses_dict", [{"dn": 1.0, "overland_losses": 1.0}])
         # NEW
     }
+    if isinstance(solver, Solver):
+        optimize_network["solver"] = solver.value
     return optimize_network
 
 

@@ -120,7 +120,7 @@ class DemoSimulation(BaseSimulation):
             )
 
     def __run_gis_optimize_network(self, iteration_mode: bool = False) -> None:
-        platform = platform_to_optimize_network(initial_data=self.initial_data)
+        platform = platform_to_optimize_network(initial_data=self.initial_data, solver=self.simulation_solver)
         cf_module = cf_module_to_optimize_network(river_data=self.river_data)
         teo_module = teo_module_to_optimize_network(river_data=self.river_data)
         gis_module = gis_module_to_optimize_network(initial_data=self.initial_data, river_data=self.river_data)
@@ -169,7 +169,11 @@ class DemoSimulation(BaseSimulation):
                 if coverage_percent < 5:
                     iteration_mode = False
 
-            platform = platform_to_buildmodel(initial_data=self.initial_data, river_data=self.river_data)
+            platform = platform_to_buildmodel(
+                initial_data=self.initial_data,
+                river_data=self.river_data,
+                solver=self.simulation_solver,
+            )
             cf_module = cf_module_to_buildmodel(river_data=self.river_data)
             gis_module = gis_module_to_buildmodel(river_data=self.river_data)
             buildmodel_request = BuildModelInput(
@@ -196,7 +200,7 @@ class DemoSimulation(BaseSimulation):
         )
 
     def __run_market_long_term(self) -> None:
-        platform = platform_to_long_term(initial_data=self.initial_data)
+        platform = platform_to_long_term(initial_data=self.initial_data, solver=self.simulation_solver)
         cf_module = cf_module_to_long_term(river_data=self.river_data)
         gis_module = gis_module_to_long_term(river_data=self.river_data)
         teo_module = teo_module_to_long_term(river_data=self.river_data)
@@ -253,7 +257,11 @@ class DemoSimulation(BaseSimulation):
         )
 
     def __run_simple_teo_buildmodel(self) -> None:
-        platform = platform_to_buildmodel(initial_data=self.initial_data, river_data=self.river_data)
+        platform = platform_to_buildmodel(
+            initial_data=self.initial_data,
+            river_data=self.river_data,
+            solver=self.simulation_solver,
+        )
         cf_module = cf_module_to_buildmodel(river_data=self.river_data)
         gis_module = gis_module_to_buildmodel(river_data=self.river_data)
         buildmodel_request = BuildModelInput(
