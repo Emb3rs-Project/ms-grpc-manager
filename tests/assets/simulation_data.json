@@ -17682,6 +17682,7 @@
       }
     ],
     "steps": 0,
+    "solver": "SCIP",
     "sources": [
       {
         "id": 41,
@@ -35371,18 +35372,12 @@
       "md": "pool",
       "rls": [
         ["source 1", "source 1 ext tech"],
-        ["source 2", "source 2 ext tech"],
-        ["source 3", "source 3 ext tech"],
-        ["source 4", "source 4 ext tech"],
-        ["sink 5", "sink 5 ext tech"],
-        ["sink 6", "sink 6 ext tech"],
-        ["sink 7", "sink 7 ext tech"],
-        ["sink 8", "sink 8 ext tech"],
-        ["sink 9", "sink 9 ext tech"],
-        ["sink 10", "sink 10 ext tech"],
-        ["sink 11", "sink 11 ext tech"]
+        ["sink 2", "sink 2 utl tech"]
       ],
-      "rls_map": [],
+      "rls_map": [
+        ["source 1", "sourceu00a7+1"],
+        ["sink 2", "teste"]
+      ],
       "cost": null,
       "gmax": null,
       "lmax": null,

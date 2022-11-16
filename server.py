@@ -22,7 +22,7 @@ class ManagerModule(ManagerServicer):
 
         simulation_class = SIMULATION_MAPPER.get(simulation_metadata["identifier"], BaseSimulation)
         simulation_steps = simulation_metadata.get("steps")
-        simulation_solver = simulation_metadata.get("solver")
+        simulation_solver = initial_data.get("solver")
 
         if simulation_solver is not None:
             try:
