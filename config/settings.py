@@ -9,6 +9,7 @@ dotenv.load_dotenv()
 class Solver(str, Enum):
     GUROBI = "GUROBI"
     SCIP = "SCIP"
+    HIGHS = "HIGHS"
 
 
 class Settings:

@@ -70,12 +70,35 @@ def test_demo_simulation_run_with_invalid_simulation_steps_should_raise_exceptio
 
 
 @pytest.mark.demo
-def test_demo_simulation_run_with_scip_solver(simulation_session_in_database: SimulationSession, simulation_data: dict):
+def test_demo_simulation_run_with_scip_solver(
+    simulation_session_in_database: SimulationSession, simulation_data: dict,
+):
     simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
     demo = DemoSimulation(
         initial_data=simulation_data["initialData"],
         simulation_session=simulation_session_in_database.simulation_uuid,
         simulation_solver=Solver.SCIP,
+    )
+
+    assert demo.run() is None
+    assert demo.river_data.get("convert_sink") is not None
+    assert demo.river_data.get("convert_source") is not None
+    assert demo.river_data.get("create_network") is not None
+    assert demo.river_data.get("optimize_network") is not None
+    assert demo.river_data.get("buildmodel") is not None
+    assert demo.river_data.get("long_term") is not None
+    assert demo.river_data.get("feasability") is not None
+
+
+@pytest.mark.demo
+def test_demo_simulation_run_with_highs_solver(
+    simulation_session_in_database: SimulationSession, simulation_data: dict,
+):
+    simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
+    demo = DemoSimulation(
+        initial_data=simulation_data["initialData"],
+        simulation_session=simulation_session_in_database.simulation_uuid,
+        simulation_solver=Solver.HIGHS,
     )
 
     assert demo.run() is None
