@@ -1,6 +1,5 @@
 import pytest
 
-from config.settings import Solver
 from reports.db_models import SimulationSession
 from simulations.base_simulation import BaseSimulation
 from simulations.demo_simulation import DemoSimulation
@@ -74,10 +73,13 @@ def test_demo_simulation_run_with_scip_solver(
     simulation_session_in_database: SimulationSession, simulation_data: dict,
 ):
     simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
+    simulation_data["initialData"]["solver_gis"] = "SCIP"
+    simulation_data["initialData"]["solver_teo"] = "SCIP"
+    simulation_data["initialData"]["solver_market"] = "SCIP"
+
     demo = DemoSimulation(
         initial_data=simulation_data["initialData"],
         simulation_session=simulation_session_in_database.simulation_uuid,
-        simulation_solver=Solver.SCIP,
     )
 
     assert demo.run() is None
@@ -95,10 +97,61 @@ def test_demo_simulation_run_with_highs_solver(
     simulation_session_in_database: SimulationSession, simulation_data: dict,
 ):
     simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
+    simulation_data["initialData"]["solver_gis"] = "HIGHS"
+    simulation_data["initialData"]["solver_teo"] = "HIGHS"
+    simulation_data["initialData"]["solver_market"] = "HIGHS"
+
     demo = DemoSimulation(
         initial_data=simulation_data["initialData"],
         simulation_session=simulation_session_in_database.simulation_uuid,
-        simulation_solver=Solver.HIGHS,
+    )
+
+    assert demo.run() is None
+    assert demo.river_data.get("convert_sink") is not None
+    assert demo.river_data.get("convert_source") is not None
+    assert demo.river_data.get("create_network") is not None
+    assert demo.river_data.get("optimize_network") is not None
+    assert demo.river_data.get("buildmodel") is not None
+    assert demo.river_data.get("long_term") is not None
+    assert demo.river_data.get("feasability") is not None
+
+
+@pytest.mark.demo
+def test_demo_simulation_run_with_gurobi_solver(
+    simulation_session_in_database: SimulationSession, simulation_data: dict,
+):
+    simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
+    simulation_data["initialData"]["solver_gis"] = "GUROBI"
+    simulation_data["initialData"]["solver_teo"] = "GUROBI"
+    simulation_data["initialData"]["solver_market"] = "GUROBI"
+
+    demo = DemoSimulation(
+        initial_data=simulation_data["initialData"],
+        simulation_session=simulation_session_in_database.simulation_uuid,
+    )
+
+    assert demo.run() is None
+    assert demo.river_data.get("convert_sink") is not None
+    assert demo.river_data.get("convert_source") is not None
+    assert demo.river_data.get("create_network") is not None
+    assert demo.river_data.get("optimize_network") is not None
+    assert demo.river_data.get("buildmodel") is not None
+    assert demo.river_data.get("long_term") is not None
+    assert demo.river_data.get("feasability") is not None
+
+
+@pytest.mark.demo
+def test_demo_simulation_run_with_multiple_solvers(
+    simulation_session_in_database: SimulationSession, simulation_data: dict,
+):
+    simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
+    simulation_data["initialData"]["solver_gis"] = "HIGHS"
+    simulation_data["initialData"]["solver_teo"] = "SCIP"
+    simulation_data["initialData"]["solver_market"] = "GUROBI"
+
+    demo = DemoSimulation(
+        initial_data=simulation_data["initialData"],
+        simulation_session=simulation_session_in_database.simulation_uuid,
     )
 
     assert demo.run() is None

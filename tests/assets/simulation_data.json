@@ -17682,7 +17682,9 @@
       }
     ],
     "steps": 0,
-    "solver": "SCIP",
+    "solver_gis": "SCIP",
+    "solver_teo": "SCIP",
+    "solver_market": "SCIP",
     "sources": [
       {
         "id": 41,
@@ -35368,7 +35370,7 @@
       }
     ],
     "input_data": {
-      "actorshare": [0.5, 0.1, 0.1, 0.1, 0.1, 0.1, 0, 0, 0, 0, 0],
+      "actorshare": [1],
       "md": "pool",
       "rls": [
         ["source 1", "source 1 ext tech"],
@@ -35410,7 +35412,7 @@
       "vc_dig_st_ex": 1.1,
       "vc_dig_tr_ex": 1.3,
       "co2_emissions": null,
-      "co2_intensity": 25.0,
+      "co2_intensity": 25,
       "discount_rate": [4, 5],
       "heat_capacity": 4.18,
       "horizon_basis": null,

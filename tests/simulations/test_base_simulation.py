@@ -15,8 +15,6 @@ def test_base_simulation_inheritance(simulation_session_in_database: SimulationS
     assert base.initial_data == {}
     assert base.simulation_session == simulation_session_in_database.simulation_uuid
     assert base.simulation_steps is None
-    assert base.simulation_solver == Settings.DEFAULT_SIMULATION_SOLVER
-    assert isinstance(base.simulation_solver, Solver)
 
 
 def test_base_simulation_inheritance_without_implement_all_abstract_methods():

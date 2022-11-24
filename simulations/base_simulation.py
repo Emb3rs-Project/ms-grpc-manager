@@ -8,7 +8,7 @@ from gis.gis_pb2_grpc import GISModuleStub
 from market.market_pb2_grpc import MarketModuleStub
 from teo.teo_pb2_grpc import TEOModuleStub
 
-from config.settings import Settings, Solver
+from config.settings import Settings
 from reports.reporter import Reporter
 
 
@@ -30,12 +30,10 @@ class BaseSimulation(ABC):
         initial_data: Dict[str, Any],
         simulation_session: str,
         simulation_steps: list = None,
-        simulation_solver: Solver = None,
     ) -> None:
         self.initial_data = initial_data
         self.simulation_session = simulation_session
         self.simulation_steps = simulation_steps
-        self.simulation_solver = simulation_solver or Settings.DEFAULT_SIMULATION_SOLVER
         self.reporter = Reporter(self.simulation_session)
         self.river_data = {}
         self.last_request_input_data = {}

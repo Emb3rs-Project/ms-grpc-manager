@@ -39,7 +39,7 @@ class Settings:
     DATABASE_URL = os.getenv("DATABASE_URL")
 
     # Simulation
-    DEFAULT_SIMULATION_SOLVER = Solver(os.getenv("DEFAULT_SIMULATION_SOLVER", "GUROBI"))
+    DEFAULT_SIMULATION_SOLVER = os.getenv("DEFAULT_SIMULATION_SOLVER", Solver.SCIP.value)
 
     # Feature Toggle
     GIS_TEO_ITERATION_MODE = True if os.getenv("GIS_TEO_ITERATION_MODE") in ("1", "True", "true") else False

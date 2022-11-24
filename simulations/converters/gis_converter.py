@@ -1,7 +1,10 @@
+import logging
+
 from cf.cf_models import ConvertSinkOutputModel, ConvertSourceOutputModel
-from config.settings import Solver
 from gis.gis_models import CreateNetworkOutputModel
 from teo.teo_models import BuildModelOutputModel
+
+from config.settings import Settings, Solver
 
 
 def platform_to_create_network(initial_data):
@@ -41,7 +44,15 @@ def teo_module_to_create_network(river_data):
     return optimize_network
 
 
-def platform_to_optimize_network(initial_data, solver: Solver = None):
+def platform_to_optimize_network(initial_data):
+    try:
+        solver_gis = initial_data.get("solver_gis", Settings.DEFAULT_SIMULATION_SOLVER)
+        solver = Solver(solver_gis)
+    except (KeyError, ValueError) as exc:
+        message = f"Solver chosed for GIS Module is not valid: {exc}"
+        logging.error(message)
+        raise Exception(message)
+
     input_data = initial_data["input_data"]
     optimize_network = {
         "network_resolution": input_data["network_resolution"],
@@ -64,11 +75,10 @@ def platform_to_optimize_network(initial_data, solver: Solver = None):
         "vc_pip_ex": input_data["vc_pip_ex"],
         "invest_pumps": input_data["invest_pumps"],
         # NEW - Check if this should be in Platform.
-        "surface_losses_dict": input_data.get("surface_losses_dict", [{"dn": 1.0, "overland_losses": 1.0}])
+        "surface_losses_dict": input_data.get("surface_losses_dict", [{"dn": 1.0, "overland_losses": 1.0}]),
         # NEW
+        "solver": solver.value
     }
-    if isinstance(solver, Solver):
-        optimize_network["solver"] = solver.value
     return optimize_network
 
 
