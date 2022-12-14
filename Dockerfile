@@ -1,4 +1,6 @@
-FROM ghcr.io/emb3rs-project/embers-base:latest as build
+ARG BASE_TAG=latest
+
+FROM ghcr.io/emb3rs-project/embers-base:${BASE_TAG} as build
 
 # creating the environment
 COPY environment-py39.yml .

@@ -10,6 +10,7 @@ class Solver(str, Enum):
     GUROBI = "GUROBI"
     SCIP = "SCIP"
     HIGHS = "HIGHS"
+    COPT = "COPT"
 
 
 class Settings:

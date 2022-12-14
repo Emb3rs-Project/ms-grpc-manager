@@ -9,8 +9,7 @@ git clone https://github.com/Emb3rs-Project/ms-grpc-manager.git
 
 Load submodules:
 ```shell
-git submodule init
-git submodule update
+git submodule update --init
 ```
 
 ## Setup Local Environment
