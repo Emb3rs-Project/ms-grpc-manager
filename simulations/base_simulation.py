@@ -25,7 +25,12 @@ class BaseSimulation(ABC):
     __DEFAULT_GRPC_ERROR = {"message": "Unknown error and code"}
     __DEFAULT_SERVER_ERROR = {"message": "Internal server error"}
 
-    def __init__(self, initial_data: Dict[str, Any], simulation_session: str, simulation_steps: list = None) -> None:
+    def __init__(
+        self,
+        initial_data: Dict[str, Any],
+        simulation_session: str,
+        simulation_steps: list = None,
+    ) -> None:
         self.initial_data = initial_data
         self.simulation_session = simulation_session
         self.simulation_steps = simulation_steps

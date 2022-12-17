@@ -1,6 +1,10 @@
+import logging
+
 from cf.cf_models import ConvertSinkOutputModel, ConvertSourceOutputModel
 from gis.gis_models import OptimizeNetworkOutputModel
 from teo.teo_models import BuildModelOutputModel
+
+from config.settings import Settings, Solver
 
 
 def platform_to_short_term(initial_data):
@@ -20,7 +24,17 @@ def teo_module_to_short_term(river_data):
 
 
 def platform_to_long_term(initial_data):
-    return initial_data["input_data"]["user"]
+    try:
+        solver_market = initial_data.get("solver_market", Settings.DEFAULT_SIMULATION_SOLVER)
+        solver = Solver(solver_market)
+    except (KeyError, ValueError) as exc:
+        message = f"Solver chosed for Market Module is not valid: {exc}"
+        logging.error(message)
+        raise Exception(message)
+
+    long_term = initial_data["input_data"]["user"]
+    long_term["solver"] = solver.value
+    return long_term
 
 
 def cf_module_to_long_term(river_data):

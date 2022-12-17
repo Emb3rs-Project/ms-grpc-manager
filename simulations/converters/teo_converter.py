@@ -1,5 +1,9 @@
+import logging
+
 from cf.cf_models import ConvertSinkOutputModel, ConvertSourceOutputModel
 from gis.gis_models import OptimizeNetworkOutputModel
+
+from config.settings import Settings, Solver
 
 
 def gis_module_to_buildmodel(river_data):
@@ -244,10 +248,19 @@ def platform_technologies_to_buildmodel(river_data):
 
 
 def platform_to_buildmodel(initial_data, river_data):
+    try:
+        solver_teo = initial_data.get("solver_teo", Settings.DEFAULT_SIMULATION_SOLVER)
+        solver = Solver(solver_teo)
+    except (KeyError, ValueError) as exc:
+        message = f"Solver chosed for TEO Module is not valid: {exc}"
+        logging.error(message)
+        raise Exception(message)
+
     platform_technologies = platform_technologies_to_buildmodel(river_data=river_data)
     input_data = initial_data["input_data"]
     platform_sets = input_data["platform_sets"]
     platform_storages = input_data["platform_storages"]
+
     buildmodel = {
         "platform_technologies": platform_technologies,
         "platform_sets": platform_sets,
@@ -267,5 +280,6 @@ def platform_to_buildmodel(initial_data, river_data):
                 "technologyfromstorage": storage.get("technologyfromstorage", 1),
             } for storage in platform_storages
         ],
+        "solver": solver.value
     }
     return buildmodel
