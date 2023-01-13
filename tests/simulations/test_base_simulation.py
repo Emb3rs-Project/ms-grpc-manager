@@ -1,6 +1,5 @@
 import pytest
 
-from config.settings import Settings, Solver
 from reports.db_models import SimulationSession
 from simulations.base_simulation import BaseSimulation
 
