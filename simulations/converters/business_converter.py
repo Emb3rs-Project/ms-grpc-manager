@@ -17,7 +17,7 @@ def platform_to_financial_feasability(initial_data):
 
 
 def gis_module_to_financial_feasability(river_data):
-    river_optimize_network = OptimizeNetworkOutputModel().from_grpc(river_data["optimize_network"])
+    river_optimize_network = OptimizeNetworkOutputModel(**river_data["optimize_network"])
     feasability = {
         "net_cost": river_optimize_network.sums["total_costs"]
     }
@@ -25,7 +25,7 @@ def gis_module_to_financial_feasability(river_data):
 
 
 def teo_module_to_financial_feasability(river_data):
-    river_buildmodel = BuildModelOutputModel().from_grpc(river_data["buildmodel"])
+    river_buildmodel = BuildModelOutputModel(**river_data["buildmodel"])
     feasability = {
         "DiscountedCapitalInvestmentByTechnology": river_buildmodel.DiscountedCapitalInvestmentByTechnology,
         "DiscountedCapitalInvestmentByStorage": river_buildmodel.DiscountedCapitalInvestmentByStorage,
@@ -37,7 +37,7 @@ def teo_module_to_financial_feasability(river_data):
 
 
 def market_module_to_financial_feasability(river_data):
-    river_long_term = LongTermOutputModel().from_grpc(river_data["long_term"])
+    river_long_term = LongTermOutputModel(**river_data["long_term"])
     feasability = {
         "shadow_price": river_long_term.shadow_price,
         "Pn": river_long_term.Pn,

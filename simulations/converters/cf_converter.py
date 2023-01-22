@@ -48,7 +48,7 @@ def platform_to_convert_source(initial_data):
 
 
 def cf_module_to_convert_source(river_data: Dict, **_):
-    river_convert_sink = ConvertSinkOutputModel().from_grpc(river_data["convert_sink"])
+    river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
 
     output = {
         "sink_group_grid_supply_temperature": river_convert_sink.all_sinks_info["sink_group_grid_supply_temperature"],
@@ -56,7 +56,7 @@ def cf_module_to_convert_source(river_data: Dict, **_):
     }
 
     if river_data.get("convert_source") is not None:
-        river_convert_source = ConvertSourceOutputModel().from_grpc(river_data["convert_source"])
+        river_convert_source = ConvertSourceOutputModel(**river_data["convert_source"])
         output["last_iteration_data"] = river_convert_source.dict()
 
     return output

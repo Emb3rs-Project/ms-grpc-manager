@@ -39,6 +39,11 @@ class Settings:
     # Database
     DATABASE_URL = os.getenv("DATABASE_URL")
 
+    # Redis
+    REDIS_HOST = os.getenv("REDIS_HOST")
+    REDIS_PORT = os.getenv("REDIS_PORT")
+    REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+
     # Simulation
     DEFAULT_SIMULATION_SOLVER = os.getenv("DEFAULT_SIMULATION_SOLVER", Solver.SCIP.value)
 

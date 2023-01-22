@@ -17684,7 +17684,8 @@
     "steps": 0,
     "solver_gis": "SCIP",
     "solver_teo": "SCIP",
-    "solver_market": "SCIP",
+    "solver_market": "COPT",
+    "itermediate_steps": true,
     "sources": [
       {
         "id": 41,
