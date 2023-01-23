@@ -54,6 +54,13 @@ class Reporter:
             session.execute(statement)
             session.commit()
 
+    def get_steps(self) -> list[IntegrationReport]:
+        statement = select(IntegrationReport).where(
+            IntegrationReport.simulation_id == self.simulation_session.simulation_id
+        )
+        with Session(engine) as session:
+            return session.execute(statement).scalars().all()
+
     def __load_simulation(self) -> None:
         statement = select(SimulationSession).where(SimulationSession.simulation_uuid == self.session_uuid)
         with Session(engine) as session:

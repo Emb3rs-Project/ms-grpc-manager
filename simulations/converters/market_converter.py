@@ -38,8 +38,8 @@ def platform_to_long_term(initial_data):
 
 
 def cf_module_to_long_term(river_data):
-    river_convert_sink = ConvertSinkOutputModel().from_grpc(river_data["convert_sink"])
-    river_convert_source = ConvertSourceOutputModel().from_grpc(river_data["convert_source"])
+    river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
+    river_convert_source = ConvertSourceOutputModel(**river_data["convert_source"])
     long_term = {
         "all_sinks_info": river_convert_sink.all_sinks_info,
         "all_sources_info": river_convert_source.all_sources_info,
@@ -48,7 +48,7 @@ def cf_module_to_long_term(river_data):
 
 
 def gis_module_to_long_term(river_data):
-    river_optimize_network = OptimizeNetworkOutputModel().from_grpc(river_data["optimize_network"])
+    river_optimize_network = OptimizeNetworkOutputModel(**river_data["optimize_network"])
     long_term = {
         "gis_data": {
             "res_sources_sinks": river_optimize_network.res_sources_sinks
@@ -66,5 +66,5 @@ def gis_module_to_long_term(river_data):
 
 
 def teo_module_to_long_term(river_data):
-    river_buildmodel = BuildModelOutputModel().from_grpc(river_data["buildmodel"])
+    river_buildmodel = BuildModelOutputModel(**river_data["buildmodel"])
     return river_buildmodel.dict()
