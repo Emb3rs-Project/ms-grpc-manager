@@ -6,7 +6,7 @@ from business.business_pb2_grpc import BusinessModuleStub
 from cf.cf_pb2_grpc import CFModuleStub
 from gis.gis_pb2_grpc import GISModuleStub
 from market.market_pb2_grpc import MarketModuleStub
-from simulations.schemas.demo_simulation import SimulationData, ItermediateStep
+from simulations.schemas.demo_simulation import SimulationData, IntermediateStep
 from teo.teo_pb2_grpc import TEOModuleStub
 
 from config.redis_client import RedisClient
@@ -67,7 +67,7 @@ class BaseSimulation(ABC):
             step()
         except SimulationPausedException:
             simulation_data = SimulationData(
-                itermediate_step=ItermediateStep(function),
+                intermediate_step=IntermediateStep(function),
                 simulation_session=self.simulation_session,
                 simulation_steps=self.simulation_steps,
                 initial_data=self.initial_data,

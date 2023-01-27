@@ -9,7 +9,7 @@ from gis.gis_models import CreateNetworkOutputModel, OptimizeNetworkOutputModel
 from gis.gis_pb2 import CreateNetworkInput, OptimizeNetworkInput
 from market.market_models import LongTermOutputModel
 from market.market_pb2 import MarketInputRequest
-from simulations.schemas.demo_simulation import ItermediateStep
+from simulations.schemas.demo_simulation import IntermediateStep
 from teo.teo_models import BuildModelOutputModel
 from teo.teo_pb2 import BuildModelInput
 
@@ -74,25 +74,25 @@ class DemoSimulation(BaseSimulation):
         self.initial_data = simulation_data.initial_data
         self.river_data = simulation_data.river_data
         self.simulation_steps = self.__get_next_steps(
-            simulation_steps=simulation_data.simulation_steps, itermediate_step=simulation_data.itermediate_step
+            simulation_steps=simulation_data.simulation_steps, intermediate_step=simulation_data.intermediate_step
         )
 
-        # if simulation_data.itermediate_step == ItermediateStep.GIS_OPTIMIZE_NETWORK:
+        # if simulation_data.intermediate_step == IntermediateStep.GIS_OPTIMIZE_NETWORK:
         #     try:
         #         self.river_data["optimize_network"]["network_solution_edges"] \
         #           = self.update_data["optimize_network"]["network_solution_edges"]
         #     except KeyError as e:
-        #         raise Exception(f"Error to try get '{e}' key on GIS Itermediate Step to update data")
+        #         raise Exception(f"Error to try get '{e}' key on GIS Intermediate Step to update data")
         #
-        #     self.GIS_ITERMEDIATE_DONE = True
+        #     self.GIS_INTERMEDIATE_DONE = True
 
-        if simulation_data.itermediate_step == ItermediateStep.TEO_BUILDMODEL:
+        if simulation_data.intermediate_step == IntermediateStep.TEO_BUILDMODEL:
             try:
                 self.river_data["buildmodel_platform_input"]["platform_technologies"] = \
                     self.update_data["buildmodel"]["platform_technologies"]
             except Exception as exc:
                 error_message = {
-                    "message": f"Error to try get data on TEO Itermediate Step update data",
+                    "message": f"Error to try get data on TEO Intermediate Step update data",
                     "detail": str(exc)
                 }
                 self.reporter.save_step_error(
@@ -102,15 +102,15 @@ class DemoSimulation(BaseSimulation):
                 return
 
             # if Settings.GIS_TEO_ITERATION_MODE:
-            #     self.GIS_ITERMEDIATE_DONE = True
-            self.TEO_ITERMEDIATE_DONE = True
+            #     self.GIS_INTERMEDIATE_DONE = True
+            self.TEO_INTERMEDIATE_DONE = True
 
         self._run()
 
     @staticmethod
-    def __get_next_steps(simulation_steps: list, itermediate_step: ItermediateStep) -> list:
+    def __get_next_steps(simulation_steps: list, intermediate_step: IntermediateStep) -> list:
         try:
-            last_step_index = simulation_steps.index(itermediate_step.value)
+            last_step_index = simulation_steps.index(intermediate_step.value)
         except ValueError:
             last_step_index = 0
         next_steps = simulation_steps[last_step_index:]
@@ -202,15 +202,15 @@ class DemoSimulation(BaseSimulation):
             output_data=network_output,
         )
 
-        # if self.initial_data.get("itermediate_steps") and not getattr(self, "GIS_ITERMEDIATE_DONE", None):
+        # if self.initial_data.get("intermediate_steps") and not getattr(self, "GIS_INTERMEDIATE_DONE", None):
         #     raise SimulationPausedException()
 
     def __run_teo_buildmodel(self) -> None:
-        itermediate_step_necessary = (
-            self.initial_data.get("itermediate_steps") and not getattr(self, "TEO_ITERMEDIATE_DONE", None)
+        intermediate_step_necessary = (
+            self.initial_data.get("intermediate_steps") and not getattr(self, "TEO_INTERMEDIATE_DONE", None)
         )
-        if Settings.GIS_TEO_ITERATION_MODE is False or itermediate_step_necessary:
-            return self.__run_simple_teo_buildmodel(itermediate_step=itermediate_step_necessary)
+        if Settings.GIS_TEO_ITERATION_MODE is False or intermediate_step_necessary:
+            return self.__run_simple_teo_buildmodel(intermediate_step=intermediate_step_necessary)
 
         iterations = 0
         iteration_mode = True
@@ -315,13 +315,13 @@ class DemoSimulation(BaseSimulation):
             output_data=feasability_output,
         )
 
-    def __run_simple_teo_buildmodel(self, itermediate_step: bool = False) -> None:
+    def __run_simple_teo_buildmodel(self, intermediate_step: bool = False) -> None:
         platform = self.river_data.get(
             "buildmodel_platform_input",
             platform_to_buildmodel(initial_data=self.initial_data, river_data=self.river_data),
         )
 
-        if itermediate_step:
+        if intermediate_step:
             self.river_data["buildmodel_platform_input"] = platform
             raise SimulationPausedException()
 

@@ -16,7 +16,7 @@ def test_demo_simulation_instance(simulation_session_in_database: SimulationSess
 
 def test_demo_simulation_run(simulation_session_in_database: SimulationSession, simulation_data: dict):
     simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
-    simulation_data["itermediate_steps"] = False
+    simulation_data["intermediate_steps"] = False
 
     demo = DemoSimulation(
         initial_data=simulation_data["initialData"],
@@ -73,12 +73,12 @@ def test_demo_simulation_run_when_invalid_simulation_steps_should_raise_exceptio
 
 
 @pytest.mark.xfail(reason="Redis unavailable", raises=ConnectionError)
-def test_demo_simulation_run_with_itermediate_steps(
+def test_demo_simulation_run_with_intermediate_steps(
     simulation_session_in_database: SimulationSession, simulation_data: dict, mocker: MockerFixture,
 ):
     mocker.patch.object(Settings, "GIS_TEO_ITERATION_MODE", True)
     simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
-    simulation_data["itermediate_steps"] = True
+    simulation_data["intermediate_steps"] = True
     redis = RedisClient()
 
     demo_start = DemoSimulation(
@@ -139,12 +139,12 @@ def test_demo_simulation_run_with_itermediate_steps(
 
 
 @pytest.mark.xfail(reason="Redis unavailable", raises=ConnectionError)
-def test_demo_simulation_run_itermediate_steps_when_has_some_error_on_module(
+def test_demo_simulation_run_intermediate_steps_when_has_some_error_on_module(
     simulation_session_in_database: SimulationSession, simulation_data: dict, mocker: MockerFixture,
 ):
     mocker.patch.object(Settings, "GIS_TEO_ITERATION_MODE", True)
     simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
-    simulation_data["itermediate_steps"] = True
+    simulation_data["intermediate_steps"] = True
     RedisClient()
 
     demo_start = DemoSimulation(
@@ -182,7 +182,7 @@ def test_demo_simulation_run_with_iteration_between_gis_and_teo(
 ):
     mocker.patch.object(Settings, "GIS_TEO_ITERATION_MODE", True)
     simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
-    simulation_data["itermediate_steps"] = False
+    simulation_data["intermediate_steps"] = False
 
     demo = DemoSimulation(
         initial_data=simulation_data["initialData"],
@@ -204,7 +204,7 @@ def test_demo_simulation_run_with_gurobi_solver(
     simulation_session_in_database: SimulationSession, simulation_data: dict,
 ):
     simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
-    simulation_data["itermediate_steps"] = False
+    simulation_data["intermediate_steps"] = False
     simulation_data["initialData"]["solver_gis"] = "GUROBI"
     simulation_data["initialData"]["solver_teo"] = "GUROBI"
     simulation_data["initialData"]["solver_market"] = "GUROBI"
@@ -228,7 +228,7 @@ def test_demo_simulation_run_with_scip_solver(
     simulation_session_in_database: SimulationSession, simulation_data: dict,
 ):
     simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
-    simulation_data["itermediate_steps"] = False
+    simulation_data["intermediate_steps"] = False
     simulation_data["initialData"]["solver_gis"] = "SCIP"
     simulation_data["initialData"]["solver_teo"] = "SCIP"
     simulation_data["initialData"]["solver_market"] = "SCIP"
@@ -252,7 +252,7 @@ def test_demo_simulation_run_with_highs_solver(
     simulation_session_in_database: SimulationSession, simulation_data: dict,
 ):
     simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
-    simulation_data["itermediate_steps"] = False
+    simulation_data["intermediate_steps"] = False
     simulation_data["initialData"]["solver_gis"] = "HIGHS"
     simulation_data["initialData"]["solver_teo"] = "HIGHS"
     simulation_data["initialData"]["solver_market"] = "HIGHS"
@@ -277,7 +277,7 @@ def test_demo_simulation_run_with_copt_solver(
     simulation_session_in_database: SimulationSession, simulation_data: dict,
 ):
     simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
-    simulation_data["itermediate_steps"] = False
+    simulation_data["intermediate_steps"] = False
     simulation_data["initialData"]["solver_gis"] = "COPT"
     simulation_data["initialData"]["solver_teo"] = "COPT"
     simulation_data["initialData"]["solver_market"] = "COPT"
@@ -302,7 +302,7 @@ def test_demo_simulation_run_with_multiple_solvers(
     simulation_session_in_database: SimulationSession, simulation_data: dict,
 ):
     simulation_data["simulationUuid"] = simulation_session_in_database.simulation_uuid
-    simulation_data["itermediate_steps"] = False
+    simulation_data["intermediate_steps"] = False
     simulation_data["initialData"]["solver_gis"] = "GUROBI"
     simulation_data["initialData"]["solver_teo"] = "SCIP"
     simulation_data["initialData"]["solver_market"] = "HIGHS"
