@@ -218,10 +218,17 @@ class DemoSimulation(BaseSimulation):
         while iteration_mode:
             if last_losses_in_kw is not None:
                 iterations += 1
-                self.__run_gis_create_network(iteration_number=iterations)
-                self.__run_gis_optimize_network(iteration_number=iterations)
-                losses_in_kw = gis_module_to_buildmodel(river_data=self.river_data)["losses_in_kw"]
 
+                try:
+                    self.__run_gis_create_network(iteration_number=iterations)
+                except Exception as exc:
+                    raise Exception(f"GIS Create Network [Iteration {iterations}]: Failed with error: {exc}")
+                try:
+                    self.__run_gis_optimize_network(iteration_number=iterations)
+                except Exception as exc:
+                    raise Exception(f"GIS Optimize Network [Iteration {iterations}]: Failed with error: {exc}")
+
+                losses_in_kw = gis_module_to_buildmodel(river_data=self.river_data)["losses_in_kw"]
                 losses_in_kw_difference = abs(losses_in_kw - last_losses_in_kw)
                 coverage_percent = losses_in_kw_difference / last_losses_in_kw * 100
                 if coverage_percent < 5:
