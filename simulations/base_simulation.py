@@ -79,7 +79,13 @@ class BaseSimulation(ABC):
         except grpc.RpcError as rpc_error:
             error_code = rpc_error.code()  # noqa
             error_message = self.__STEP_ERROR_MESSAGES.get(error_code, self.__DEFAULT_GRPC_ERROR)
-            error_message["detail"] = rpc_error.details()  # noqa
+            error_details = rpc_error.details()  # noqa
+            error_message["detail"] = error_details
+            trace_id = "Trace: "
+            if trace_id in error_details:
+                exception, trace, *_ = error_details.split(trace_id)
+                error_message["detail"] = exception.strip()
+                error_message["trace"] = trace.replace(trace_id, "")
             self.reporter.save_step_error(
                 module=module, function=function, input_data=self.last_request_input_data, errors=error_message
             )
@@ -87,7 +93,7 @@ class BaseSimulation(ABC):
             return False
         except Exception as exc:
             error_message = self.__DEFAULT_SERVER_ERROR
-            error_message["detail"] = str(exc)
+            error_message["detail"] = str(exc) or repr(exc)
             self.reporter.save_step_error(
                 module=module, function=function, input_data=self.last_request_input_data, errors=error_message
             )
