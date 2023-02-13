@@ -11,6 +11,9 @@ class PinchSimulation(BaseSimulation):
     def _run(self) -> None:
         self.safe_run_step(module="CF Module", function="convert_pinch", step=self.__run_cf_convert_pinch)
 
+    def _run_update(self) -> None:
+        raise NotImplementedError
+
     def __run_cf_convert_pinch(self) -> None:
         platform = platform_to_convert_pinch(initial_data=self.initial_data)
         convert_pinch_request = PlatformOnlyInput(platform=json.dumps(platform))
