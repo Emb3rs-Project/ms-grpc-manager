@@ -1,3 +1,4 @@
+import traceback
 from abc import ABC, abstractmethod
 from typing import Callable
 
@@ -93,7 +94,9 @@ class BaseSimulation(ABC):
             return False
         except Exception as exc:
             error_message = self.__DEFAULT_SERVER_ERROR
+            trace = traceback.format_exc()
             error_message["detail"] = str(exc) or repr(exc)
+            error_message["trace"] = trace.replace(Settings.BASE_PATH, "")
             self.reporter.save_step_error(
                 module=module, function=function, input_data=self.last_request_input_data, errors=error_message
             )
