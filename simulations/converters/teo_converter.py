@@ -144,6 +144,7 @@ def cf_module_to_buildmodel_technologies_cf(river_data):
                     "om_fix": grid["om_fix"],
                     "om_var": grid["om_var"],
                     "emissions_factor": grid["emissions"],
+                    "input": conversion_technology["conversion_efficiency"],
                 } | cond_input | cond_technology,
             )
         )
@@ -198,6 +199,7 @@ def cf_module_to_buildmodel_technologies_cf(river_data):
                             "om_fix": conversion_technology["om_fix"],
                             "om_var": conversion_technology["om_var"],
                             "emissions_factor": conversion_technology["emissions"],
+                            "input": conversion_technology["conversion_efficiency"],
                         } | cond_input | cond_technology,
                     )
                 )
