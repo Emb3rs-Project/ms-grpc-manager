@@ -10,6 +10,7 @@ from market.market_pb2_grpc import MarketModuleStub
 from simulations.schemas.demo_simulation import SimulationData, IntermediateStep
 from teo.teo_pb2_grpc import TEOModuleStub
 
+from config.grpc_client import GrpcChannel
 from config.redis_client import RedisClient
 from config.settings import Settings
 from reports.reporter import Reporter
@@ -143,6 +144,7 @@ class BaseSimulation(ABC):
         )
 
     def __stub_composer(self) -> None:
+        self.channel = GrpcChannel()
         self.__cf_stub()
         self.__gis_stub()
         self.__teo_stub()
@@ -150,39 +152,44 @@ class BaseSimulation(ABC):
         self.__business_stub()
 
     def __cf_stub(self) -> None:
-        self.cf_channel = grpc.insecure_channel(
-            target=f"{Settings.CF_HOST}:{Settings.CF_PORT}",
-            options=self.__GRPC_CHANNEL_OPTIONS
-        )
-        self.cf = CFModuleStub(channel=self.cf_channel)
+        # self.cf_channel = grpc.insecure_channel(
+        #     target=f"{Settings.CF_HOST}:{Settings.CF_PORT}",
+        #     options=self.__GRPC_CHANNEL_OPTIONS
+        # )
+        # self.cf = CFModuleStub(channel=self.cf_channel)
+        self.cf = CFModuleStub(channel=self.channel.cf)
 
     def __gis_stub(self) -> None:
-        self.gis_channel = grpc.insecure_channel(
-            target=f"{Settings.GIS_HOST}:{Settings.GIS_PORT}",
-            options=self.__GRPC_CHANNEL_OPTIONS
-        )
-        self.gis = GISModuleStub(channel=self.gis_channel)
+        # self.gis_channel = grpc.insecure_channel(
+        #     target=f"{Settings.GIS_HOST}:{Settings.GIS_PORT}",
+        #     options=self.__GRPC_CHANNEL_OPTIONS
+        # )
+        # self.gis = GISModuleStub(channel=self.gis_channel)
+        self.gis = GISModuleStub(channel=self.channel.gis)
 
     def __teo_stub(self) -> None:
-        self.teo_channel = grpc.insecure_channel(
-            target=f"{Settings.TEO_HOST}:{Settings.TEO_PORT}",
-            options=self.__GRPC_CHANNEL_OPTIONS
-        )
-        self.teo = TEOModuleStub(channel=self.teo_channel)
+        # self.teo_channel = grpc.insecure_channel(
+        #     target=f"{Settings.TEO_HOST}:{Settings.TEO_PORT}",
+        #     options=self.__GRPC_CHANNEL_OPTIONS
+        # )
+        # self.teo = TEOModuleStub(channel=self.teo_channel)
+        self.teo = TEOModuleStub(channel=self.channel.teo)
 
     def __market_stub(self) -> None:
-        self.market_channel = grpc.insecure_channel(
-            target=f"{Settings.MM_HOST}:{Settings.MM_PORT}",
-            options=self.__GRPC_CHANNEL_OPTIONS
-        )
-        self.market = MarketModuleStub(channel=self.market_channel)
+        # self.market_channel = grpc.insecure_channel(
+        #     target=f"{Settings.MM_HOST}:{Settings.MM_PORT}",
+        #     options=self.__GRPC_CHANNEL_OPTIONS
+        # )
+        # self.market = MarketModuleStub(channel=self.market_channel)
+        self.market = MarketModuleStub(channel=self.channel.market)
 
     def __business_stub(self) -> None:
-        self.business_channel = grpc.insecure_channel(
-            target=f"{Settings.BM_HOST}:{Settings.BM_PORT}",
-            options=self.__GRPC_CHANNEL_OPTIONS
-        )
-        self.business = BusinessModuleStub(channel=self.business_channel)
+        # self.business_channel = grpc.insecure_channel(
+        #     target=f"{Settings.BM_HOST}:{Settings.BM_PORT}",
+        #     options=self.__GRPC_CHANNEL_OPTIONS
+        # )
+        # self.business = BusinessModuleStub(channel=self.business_channel)
+        self.business = BusinessModuleStub(channel=self.channel.business)
 
 
 class SimulationPausedException(Exception):
