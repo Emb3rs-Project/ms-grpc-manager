@@ -213,7 +213,7 @@ def cf_module_to_buildmodel_reference(river_data):
     reference = []
     river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
 
-    for sink in river_convert_sink["all_sinks_info"]["sinks"]:
+    for sink in river_convert_sink.all_sinks_info["sinks"]:
         for stream in sink["streams"]:
             reference.append({
                 "name": stream["teo_sink_stream_id"],
