@@ -211,8 +211,7 @@ def cf_module_to_buildmodel_technologies_cf(river_data):
 
 def cf_module_to_buildmodel_reference(river_data):
     reference = []
-    river_convert_sink = json.loads(river_data["convert_sink"])
-    river_convert_source = json.loads(river_data["convert_source"])
+    river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
 
     for sink in river_convert_sink["all_sinks_info"]["sinks"]:
         for stream in sink["streams"]:
