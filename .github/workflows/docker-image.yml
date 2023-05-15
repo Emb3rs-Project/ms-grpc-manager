@@ -3,8 +3,9 @@ name: Create and Publish a Docker Image in GHCR
 on:
   push:
     branches:
+      - "dev"
       - "qa"
-      - "main"
+      - "master"
 
 env:
   REGISTRY: ghcr.io
@@ -42,3 +43,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BASE_TAG=${{ github.ref_name }}

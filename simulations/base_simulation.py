@@ -1,89 +1,196 @@
-import os
-from typing import Any, Dict
+import traceback
+from abc import ABC, abstractmethod
+from typing import Callable
 
 import grpc
-
 from business.business_pb2_grpc import BusinessModuleStub
 from cf.cf_pb2_grpc import CFModuleStub
 from gis.gis_pb2_grpc import GISModuleStub
 from market.market_pb2_grpc import MarketModuleStub
-from reports.reporter import Reporter
+from simulations.schemas.demo_simulation import SimulationData, IntermediateStep
 from teo.teo_pb2_grpc import TEOModuleStub
 
+from config.grpc_client import GrpcChannel
+from config.redis_client import RedisClient
+from config.settings import Settings
+from reports.reporter import Reporter
 
-class BaseSimulation:
 
-    def __init__(self, initial_data: Dict[str, Any], simulation_session: str):
+class BaseSimulation(ABC):
+    __STEP_ERROR_MESSAGES = {
+        grpc.StatusCode.CANCELLED: {"message": "Request has been Cancelled"},
+        grpc.StatusCode.UNAVAILABLE: {"message": "Service is not available"},
+        grpc.StatusCode.UNKNOWN: {"message": "Unknown error"},
+    }
+    __GRPC_CHANNEL_OPTIONS = [
+        ('grpc.max_send_message_length', Settings.GRPC_MAX_MESSAGE_LENGTH),
+        ('grpc.max_receive_message_length', Settings.GRPC_MAX_MESSAGE_LENGTH)
+    ]
+    __DEFAULT_GRPC_ERROR = {"message": "Unknown error and code"}
+    __DEFAULT_SERVER_ERROR = {"message": "Internal server error"}
+
+    def __init__(
+        self,
+        simulation_session: str,
+        simulation_steps: list = None,
+        initial_data: dict = None,
+        update_data: dict = None,
+    ) -> None:
         self.initial_data = initial_data
+        self.update_data = update_data
         self.simulation_session = simulation_session
-        self.__stub_factory()
-
-    def __stub_factory(self):
-        self.reporter = Reporter(self.simulation_session)
+        self.simulation_steps = simulation_steps
+        self.reporter = Reporter(session_uuid=self.simulation_session)
+        self.redis = RedisClient()
         self.river_data = {}
+        self.last_request_input_data = {}
+        self.simulation_paused = False
+        self.simulation_finished = False
+        self.__stub_composer()
 
-        self.cf_channel = grpc.insecure_channel(f"{os.getenv('CF_HOST')}:{os.getenv('CF_PORT')}")
-        self.cf = CFModuleStub(self.cf_channel)
-
-        self.gis_channel = grpc.insecure_channel(f"{os.getenv('GIS_HOST')}:{os.getenv('GIS_PORT')}")
-        self.gis = GISModuleStub(self.gis_channel)
-
-        self.teo_channel = grpc.insecure_channel(f"{os.getenv('TEO_HOST')}:{os.getenv('TEO_PORT')}")
-        self.teo = TEOModuleStub(self.teo_channel)
-
-        self.market_channel = grpc.insecure_channel(f"{os.getenv('MM_HOST')}:{os.getenv('MM_PORT')}")
-        self.market = MarketModuleStub(self.market_channel)
-
-        self.business_channel = grpc.insecure_channel(f"{os.getenv('BM_HOST')}:{os.getenv('BM_PORT')}")
-        self.business = BusinessModuleStub(self.business_channel)
-
-    def run(self):
-        self.simulation_started()
+    def run(self) -> None:
+        self.__simulation_started()
         self._run()
-        self.simulation_finished()
+        if self.simulation_paused:
+            return self.__simulation_paused()
+        self.__simulation_finished()
 
-    def _run(self):
-        self.reporter.save_step_error("NOT-DEFINED", "NOT-DEFINED", {},
-                                      {"message": "Simulation Metadata is Not Defined!"})
+    def run_update(self) -> None:
+        self.__simulation_update_started()
+        self._run_update()
+        self.__simulation_update_finished()
+        if self.simulation_paused:
+            return self.__simulation_paused()
+        if self.simulation_finished:
+            return self.__simulation_finished()
 
-    def safe_run_step(self, module, function, step):
+    def safe_run_step(self, module: str, function: str, step: Callable) -> bool:
         try:
             step()
-            return True
-        except grpc.RpcError as rpc_error:
-            if rpc_error.code() == grpc.StatusCode.CANCELLED:
-                self.reporter.save_step_error(
-                    module=module,
-                    function=function,
-                    input_data={},
-                    errors={"message": "Request has been Cancelled"}
-                )
-            elif rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
-                self.reporter.save_step_error(
-                    module=module,
-                    function=function,
-                    input_data={},
-                    errors={"message": "Service is not available"}
-                )
-            elif rpc_error.code() == grpc.StatusCode.UNKNOWN:
-                self.reporter.save_step_error(
-                    module=module,
-                    function=function,
-                    input_data={},
-                    errors={"message": rpc_error.details()}
-                )
-            return False
-        except Exception as e:
-            self.reporter.save_step_error(
-                module=module,
-                function=function,
-                input_data={},
-                errors={"message": str(e)}
+        except SimulationPausedException:
+            simulation_data = SimulationData(
+                intermediate_step=IntermediateStep(function),
+                simulation_session=self.simulation_session,
+                simulation_steps=self.simulation_steps,
+                initial_data=self.initial_data,
+                river_data=self.river_data,
             )
+            self.redis.set(simulation_session=self.simulation_session, simulation_data=simulation_data)
+            self.simulation_paused = True
             return False
+        except grpc.RpcError as rpc_error:
+            error_code = rpc_error.code()  # noqa
+            error_message = self.__STEP_ERROR_MESSAGES.get(error_code, self.__DEFAULT_GRPC_ERROR)
+            error_details = rpc_error.details()  # noqa
+            error_message["detail"] = error_details
+            trace_id = "Trace: "
+            if trace_id in error_details:
+                exception, trace, *_ = error_details.split(trace_id)
+                error_message["detail"] = exception.strip()
+                error_message["trace"] = trace.replace(trace_id, "")
+            self.reporter.save_step_error(
+                module=module, function=function, input_data=self.last_request_input_data, errors=error_message
+            )
+            self.simulation_finished = True
+            return False
+        except Exception as exc:
+            error_message = self.__DEFAULT_SERVER_ERROR
+            trace = traceback.format_exc()
+            error_message["detail"] = str(exc) or repr(exc)
+            error_message["trace"] = trace.replace(Settings.BASE_PATH, "")
+            self.reporter.save_step_error(
+                module=module, function=function, input_data=self.last_request_input_data, errors=error_message
+            )
+            self.simulation_finished = True
+            return False
+        return True
 
-    def simulation_started(self):
-        self.reporter.save_step_report("SIMULATOR", "SIMULATION STARTED", {}, {})
+    def __simulation_started(self) -> None:
+        self.reporter.save_step_report(
+            module="SIMULATOR", function="SIMULATION STARTED", input_data={}, output_data={}
+        )
 
-    def simulation_finished(self):
-        self.reporter.save_step_report("SIMULATOR", "SIMULATION FINISHED", {}, {})
+    def __simulation_update_started(self) -> None:
+        self.reporter.save_step_report(
+            module="SIMULATOR", function="SIMULATION UPDATE STARTED", input_data={}, output_data={}
+        )
+
+    @abstractmethod
+    def _run(self) -> None:
+        self.reporter.save_step_error(
+            "NOT-DEFINED", "NOT-DEFINED", {}, {"message": "Simulation Metadata is Not Defined!"}
+        )
+
+    @abstractmethod
+    def _run_update(self) -> None:
+        self.reporter.save_step_error(
+            "NOT-IMPLEMENTED", "NOT-IMPLEMENTED", {}, {"message": "Simulation choosed does not have update method!"}
+        )
+
+    def __simulation_paused(self) -> None:
+        self.reporter.save_step_report(
+            module="SIMULATOR", function="SIMULATION PAUSED", input_data={}, output_data={}
+        )
+
+    def __simulation_finished(self) -> None:
+        self.redis.delete(simulation_session=self.simulation_session)
+        self.reporter.save_step_report(
+            module="SIMULATOR", function="SIMULATION FINISHED", input_data={}, output_data={}
+        )
+
+    def __simulation_update_finished(self) -> None:
+        self.reporter.save_step_report(
+            module="SIMULATOR", function="SIMULATION UPDATE FINISHED", input_data={}, output_data={}
+        )
+
+    def __stub_composer(self) -> None:
+        self.channel = GrpcChannel()
+        self.__cf_stub()
+        self.__gis_stub()
+        self.__teo_stub()
+        self.__market_stub()
+        self.__business_stub()
+
+    def __cf_stub(self) -> None:
+        # self.cf_channel = grpc.insecure_channel(
+        #     target=f"{Settings.CF_HOST}:{Settings.CF_PORT}",
+        #     options=self.__GRPC_CHANNEL_OPTIONS
+        # )
+        # self.cf = CFModuleStub(channel=self.cf_channel)
+        self.cf = CFModuleStub(channel=self.channel.cf)
+
+    def __gis_stub(self) -> None:
+        # self.gis_channel = grpc.insecure_channel(
+        #     target=f"{Settings.GIS_HOST}:{Settings.GIS_PORT}",
+        #     options=self.__GRPC_CHANNEL_OPTIONS
+        # )
+        # self.gis = GISModuleStub(channel=self.gis_channel)
+        self.gis = GISModuleStub(channel=self.channel.gis)
+
+    def __teo_stub(self) -> None:
+        # self.teo_channel = grpc.insecure_channel(
+        #     target=f"{Settings.TEO_HOST}:{Settings.TEO_PORT}",
+        #     options=self.__GRPC_CHANNEL_OPTIONS
+        # )
+        # self.teo = TEOModuleStub(channel=self.teo_channel)
+        self.teo = TEOModuleStub(channel=self.channel.teo)
+
+    def __market_stub(self) -> None:
+        # self.market_channel = grpc.insecure_channel(
+        #     target=f"{Settings.MM_HOST}:{Settings.MM_PORT}",
+        #     options=self.__GRPC_CHANNEL_OPTIONS
+        # )
+        # self.market = MarketModuleStub(channel=self.market_channel)
+        self.market = MarketModuleStub(channel=self.channel.market)
+
+    def __business_stub(self) -> None:
+        # self.business_channel = grpc.insecure_channel(
+        #     target=f"{Settings.BM_HOST}:{Settings.BM_PORT}",
+        #     options=self.__GRPC_CHANNEL_OPTIONS
+        # )
+        # self.business = BusinessModuleStub(channel=self.business_channel)
+        self.business = BusinessModuleStub(channel=self.channel.business)
+
+
+class SimulationPausedException(Exception):
+    pass
