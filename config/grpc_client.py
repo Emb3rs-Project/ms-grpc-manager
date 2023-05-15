@@ -22,7 +22,7 @@ class SingletonMeta(type):
         return cls._instances[cls]
 
 
-class GrpcChannel(metaclass=SingletonMeta):
+class GrpcSingletonChannel(metaclass=SingletonMeta):
     def __init__(self) -> None:
         self.cf = grpc.insecure_channel(target=f"{Settings.CF_HOST}:{Settings.CF_PORT}", options=_CHANNEL_OPTIONS)
         self.gis = grpc.insecure_channel(target=f"{Settings.GIS_HOST}:{Settings.GIS_PORT}", options=_CHANNEL_OPTIONS)

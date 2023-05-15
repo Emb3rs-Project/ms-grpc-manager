@@ -57,7 +57,7 @@ def gis_module_to_long_term(river_data):
             "nodes": river_optimize_network.network_solution_nodes,
             "edges": river_optimize_network.network_solution_edges,
         },
-        "a_loc": {  # Maybe it is, IDK.
+        "a_loc": {
             f"agent_ID{index+1}": agent
             for index, agent in enumerate(river_optimize_network.selected_agents)
         }
