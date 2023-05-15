@@ -91,6 +91,7 @@ def cf_module_to_buildmodel_technologies_cf(river_data):
     river_convert_source = ConvertSourceOutputModel(**river_data["convert_source"])
 
     output = [create_technology_cf(river_data=river_data, props={})]
+    last_conversion_efficiency = None
 
     for sink in river_convert_sink.all_sinks_info["sinks"]:
         for stream in sink["streams"]:
@@ -117,10 +118,10 @@ def cf_module_to_buildmodel_technologies_cf(river_data):
                             "om_var": conversion_technology["om_var"],
                             "emissions_factor": conversion_technology["emissions"],
                             "input": conversion_technology["conversion_efficiency"],
-                            # "technology" : conversion_technology["technology"],
                         } | cond_input | cond_technology,
                     )
                 )
+                last_conversion_efficiency = conversion_technology["conversion_efficiency"]
 
     for grid in river_convert_sink.all_sinks_info["grid_specific"]:
 
@@ -144,7 +145,7 @@ def cf_module_to_buildmodel_technologies_cf(river_data):
                     "om_fix": grid["om_fix"],
                     "om_var": grid["om_var"],
                     "emissions_factor": grid["emissions"],
-                    "input": conversion_technology["conversion_efficiency"],
+                    "input": last_conversion_efficiency,
                 } | cond_input | cond_technology,
             )
         )
@@ -209,6 +210,7 @@ def cf_module_to_buildmodel_technologies_cf(river_data):
 
     return output
 
+
 def cf_module_to_buildmodel_reference(river_data):
     reference = []
     river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
@@ -221,8 +223,9 @@ def cf_module_to_buildmodel_reference(river_data):
                 "ref_fuel_emissions": stream["ref_fuel_emissions"],
                 "ref_fuel_price": stream["ref_fuel_price"],
             })
-                
+
     return list(filter(lambda x: (x is not None), reference))
+
 
 def cf_module_to_buildmodel(river_data):
     river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
