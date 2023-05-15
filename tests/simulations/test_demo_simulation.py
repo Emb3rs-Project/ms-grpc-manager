@@ -95,6 +95,7 @@ def test_demo_simulation_run_with_intermediate_steps(
     assert demo_start.river_data.get("long_term") is None
     assert demo_start.river_data.get("feasability") is None
 
+    # GIS Intermediate Step Flow
     # total_costs_update_value = 2000000.10
     # demo_gis_redis_data = redis.get(simulation_session=simulation_session_in_database.simulation_uuid)
     # network_solution_edges = demo_gis_redis_data.river_data["optimize_network"]["network_solution_edges"]

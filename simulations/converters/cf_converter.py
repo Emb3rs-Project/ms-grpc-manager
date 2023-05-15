@@ -3,13 +3,6 @@ from typing import Dict
 
 from cf.cf_models import ConvertSinkOutputModel, ConvertSourceOutputModel
 
-FUELS_DATA = {
-    "natural_gas": {"price": 0.02274101807185543, "co2_emissions": 0.209923664},
-    "biomass": {"price": 0.043199654, "co2_emissions": 0.0108},
-    "electricity": {"price": 0.089, "co2_emissions": 0.606},
-    "fuel_oil": {"price": 0.047392344, "co2_emissions": 0.266272189},
-}
-
 
 def platform_to_convert_sink(initial_data):
     group_of_sinks = []
@@ -17,12 +10,10 @@ def platform_to_convert_sink(initial_data):
     for sink in initial_data["sinks"]:
         _sink = copy.deepcopy(sink["values"])
         _sink["id"] = sink["id"]
-        # _sink["consumer_type"] = "non-household"  # why setting to non-household???? When have the answer, remove.
         _sink["location"] = sink["location"]["data"]["center"]
         _sink["streams"] = _sink["characterization"]["streams"]
-        # NEW - Where is that should locate on input_data? IDK, supposing on characterization
-        _sink["fuels_data"] = _sink["characterization"].get("fuels_data", FUELS_DATA)
-        # NEW
+        if fuels_data := _sink["characterization"].get("fuels_data"):
+            _sink["fuels_data"] = fuels_data
         del _sink["characterization"]
         group_of_sinks.append(_sink)
 
@@ -38,9 +29,8 @@ def platform_to_convert_source(initial_data):
         _source["id"] = source["id"]
         _source["location"] = source["location"]["data"]["center"]
         _source["streams"] = source["values"]["characterization"]["streams"]
-        # NEW - Where is that should locate on input_data? IDK, supposing on characterization
-        _source["fuels_data"] = source["values"]["characterization"].get("fuels_data", FUELS_DATA)
-        # NEW
+        if fuels_data := source["values"]["characterization"].get("fuels_data"):
+            _source["fuels_data"] = fuels_data
         group_of_sources.append(_source)
 
     convert_source = {"group_of_sources": group_of_sources}
@@ -86,7 +76,7 @@ def platform_to_convert_pinch(initial_data):
         "pinch_delta_T_min": pinch_analysis_data["pinch_delta_T_min"],
         "all_input_objects": streams,
         "lifetime": pinch_analysis_data["lifetime"],
-        "fuels_data": sources[0]["fuels_data"] if len(sources) > 0 else FUELS_DATA,
+        "fuels_data": sources[0]["fuels_data"],
         "number_output_options": pinch_analysis_data["number_output_options"],
         "interest_rate": pinch_analysis_data["interest_rate"],
     }
