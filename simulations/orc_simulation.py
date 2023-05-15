@@ -11,6 +11,9 @@ class ORCSimulation(BaseSimulation):
     def _run(self) -> None:
         self.safe_run_step(module="CF Module", function="convert_orc", step=self.__run_cf_convert_orc)
 
+    def _run_update(self) -> None:
+        raise NotImplementedError
+
     def __run_cf_convert_orc(self) -> None:
         platform = platform_to_orc_convert(initial_data=self.initial_data)
         convert_orc_request = PlatformOnlyInput(platform=json.dumps(platform))

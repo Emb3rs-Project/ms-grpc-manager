@@ -7,7 +7,7 @@ from config.settings import Settings, Solver
 
 
 def gis_module_to_buildmodel(river_data):
-    river_optimize_network = OptimizeNetworkOutputModel().from_grpc(river_data["optimize_network"])
+    river_optimize_network = OptimizeNetworkOutputModel(**river_data["optimize_network"])
     buildmodel = {
         "losses_in_kw": river_optimize_network.losses_cost_kw["losses_in_kw"],
         "cost_in_kw": river_optimize_network.losses_cost_kw["cost_in_kw"],
@@ -17,8 +17,8 @@ def gis_module_to_buildmodel(river_data):
 
 
 def cf_module_to_buildmodel_sets_technologies(river_data):
-    river_convert_sink = ConvertSinkOutputModel().from_grpc(river_data["convert_sink"])
-    river_convert_source = ConvertSourceOutputModel().from_grpc(river_data["convert_source"])
+    river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
+    river_convert_source = ConvertSourceOutputModel(**river_data["convert_source"])
 
     output = [river_convert_source.teo_string]
 
@@ -41,8 +41,8 @@ def cf_module_to_buildmodel_sets_technologies(river_data):
 
 def cf_module_to_buildmodel_sets_fuels(river_data):
     output = []
-    river_convert_sink = ConvertSinkOutputModel().from_grpc(river_data["convert_sink"])
-    river_convert_source = ConvertSourceOutputModel().from_grpc(river_data["convert_source"])
+    river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
+    river_convert_source = ConvertSourceOutputModel(**river_data["convert_source"])
 
     output.append(river_convert_source.teo_dhn["input_fuel"])
     output.append(river_convert_source.teo_dhn["output_fuel"])
@@ -72,7 +72,7 @@ def cf_module_to_buildmodel_sets_fuels(river_data):
 
 def cf_module_to_buildmodel_specified_annual_demand_cf(river_data):
     output = []
-    river_convert_sink = ConvertSinkOutputModel().from_grpc(river_data["convert_sink"])
+    river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
 
     for sink in river_convert_sink.all_sinks_info["sinks"]:
         for stream in sink["streams"]:
@@ -82,15 +82,16 @@ def cf_module_to_buildmodel_specified_annual_demand_cf(river_data):
 
 
 def create_technology_cf(river_data, props):
-    river_convert_source = ConvertSourceOutputModel().from_grpc(river_data["convert_source"])
+    river_convert_source = ConvertSourceOutputModel(**river_data["convert_source"])
     return river_convert_source.teo_dhn | props
 
 
 def cf_module_to_buildmodel_technologies_cf(river_data):
-    river_convert_sink = ConvertSinkOutputModel().from_grpc(river_data["convert_sink"])
-    river_convert_source = ConvertSourceOutputModel().from_grpc(river_data["convert_source"])
+    river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
+    river_convert_source = ConvertSourceOutputModel(**river_data["convert_source"])
 
     output = [create_technology_cf(river_data=river_data, props={})]
+    last_conversion_efficiency = None
 
     for sink in river_convert_sink.all_sinks_info["sinks"]:
         for stream in sink["streams"]:
@@ -116,10 +117,11 @@ def cf_module_to_buildmodel_technologies_cf(river_data):
                             "om_fix": conversion_technology["om_fix"],
                             "om_var": conversion_technology["om_var"],
                             "emissions_factor": conversion_technology["emissions"],
-                            # "technology" : conversion_technology["technology"],
+                            "input": conversion_technology["conversion_efficiency"],
                         } | cond_input | cond_technology,
                     )
                 )
+                last_conversion_efficiency = conversion_technology["conversion_efficiency"]
 
     for grid in river_convert_sink.all_sinks_info["grid_specific"]:
 
@@ -143,6 +145,7 @@ def cf_module_to_buildmodel_technologies_cf(river_data):
                     "om_fix": grid["om_fix"],
                     "om_var": grid["om_var"],
                     "emissions_factor": grid["emissions"],
+                    "input": last_conversion_efficiency,
                 } | cond_input | cond_technology,
             )
         )
@@ -197,6 +200,7 @@ def cf_module_to_buildmodel_technologies_cf(river_data):
                             "om_fix": conversion_technology["om_fix"],
                             "om_var": conversion_technology["om_var"],
                             "emissions_factor": conversion_technology["emissions"],
+                            "input": conversion_technology["conversion_efficiency"],
                         } | cond_input | cond_technology,
                     )
                 )
@@ -207,9 +211,25 @@ def cf_module_to_buildmodel_technologies_cf(river_data):
     return output
 
 
+def cf_module_to_buildmodel_reference(river_data):
+    reference = []
+    river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
+
+    for sink in river_convert_sink.all_sinks_info["sinks"]:
+        for stream in sink["streams"]:
+            reference.append({
+                "name": stream["teo_sink_stream_id"],
+                "ref_eff_equipment": stream["ref_eff_equipment"],
+                "ref_fuel_emissions": stream["ref_fuel_emissions"],
+                "ref_fuel_price": stream["ref_fuel_price"],
+            })
+
+    return list(filter(lambda x: (x is not None), reference))
+
+
 def cf_module_to_buildmodel(river_data):
-    river_convert_sink = ConvertSinkOutputModel().from_grpc(river_data["convert_sink"])
-    river_convert_source = ConvertSourceOutputModel().from_grpc(river_data["convert_source"])
+    river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
+    river_convert_source = ConvertSourceOutputModel(**river_data["convert_source"])
     buildmodel = {
         "specified_demand_profile_cf": river_convert_sink.teo_demand_factor_group,
         "sets_technologies": cf_module_to_buildmodel_sets_technologies(river_data=river_data),
@@ -217,6 +237,7 @@ def cf_module_to_buildmodel(river_data):
         "technologies_cf": cf_module_to_buildmodel_technologies_cf(river_data=river_data),
         "specified_annual_demand_cf": cf_module_to_buildmodel_specified_annual_demand_cf(river_data=river_data),
         "capacity_factor_cf": river_convert_source.teo_capacity_factor_group,
+        "reference": cf_module_to_buildmodel_reference(river_data=river_data),
     }
     return buildmodel
 

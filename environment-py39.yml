@@ -5,24 +5,16 @@ channels:
 dependencies:
   - python=3.9
   - pip=
-  - colorama=
-  - numpy=
-  - pandas=
-  - geopy=
-  - pvlib-python=
-  - urllib3=
-  - beautifulsoup4=
-  - matplotlib=
-  - requests=
-  - pydantic=
-  - jsonpickle=
-  - sqlalchemy=
-  - psycopg2=
-  - pytest=
-  - pytest-env=
-  - pytest-dotenv=
-  - pytest-mock=
+  - pydantic=1.*
+  - jsonpickle=3.*
+  - sqlalchemy=1.*
+  - psycopg2=2.*
+  - pytest=7.*
+  - pytest-env=0.*
+  - pytest-dotenv=0.*
+  - pytest-mock=3.*
   - pip:
     - grpcio==1.44.0
     - protobuf==3.20.1
-    - python-dotenv
+    - python-dotenv==1.0.0
+    - redis==4.5.4

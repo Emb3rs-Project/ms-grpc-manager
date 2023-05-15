@@ -40,6 +40,9 @@ class ExternalNewDHN(BaseSimulation):
         if not self.safe_run_step(module="TEO Module", function="buildmodel", step=self.__run_teo_buildmodel):
             return
 
+    def _run_update(self) -> None:
+        raise NotImplementedError
+
     def __run_cf_convert_sinks(self) -> None:
         platform = platform_to_convert_sink(initial_data=self.initial_data)
         convert_sink_request = PlatformOnlyInput(platform=json.dumps(platform))

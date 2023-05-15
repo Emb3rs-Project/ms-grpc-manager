@@ -25,8 +25,8 @@ def platform_to_create_network(initial_data):
 
 
 def cf_module_to_create_network(river_data):
-    river_convert_sink = ConvertSinkOutputModel().from_grpc(river_data["convert_sink"])
-    river_convert_source = ConvertSourceOutputModel().from_grpc(river_data["convert_source"])
+    river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
+    river_convert_source = ConvertSourceOutputModel(**river_data["convert_source"])
     create_network = {
         "n_demand_list": river_convert_sink.n_demand_list,
         "n_supply_list": river_convert_source.n_supply_list,
@@ -39,7 +39,7 @@ def cf_module_to_create_network(river_data):
 def teo_module_to_create_network(river_data):
     optimize_network = {"ex_cap": []}
     if buildmodel := river_data.get("buildmodel"):
-        river_buildmodel = BuildModelOutputModel().from_grpc(buildmodel)
+        river_buildmodel = BuildModelOutputModel(**buildmodel)
         optimize_network["ex_cap"] = river_buildmodel.ex_capacities
     return optimize_network
 
@@ -74,6 +74,7 @@ def platform_to_optimize_network(initial_data):
         "vc_pip": input_data["vc_pip"],
         "vc_pip_ex": input_data["vc_pip_ex"],
         "invest_pumps": input_data["invest_pumps"],
+        "time_limit": input_data["time_limit"],
         # NEW - Check if this should be in Platform.
         "surface_losses_dict": input_data.get("surface_losses_dict", [{"dn": 1.0, "overland_losses": 1.0}]),
         # NEW
@@ -83,8 +84,8 @@ def platform_to_optimize_network(initial_data):
 
 
 def cf_module_to_optimize_network(river_data):
-    river_convert_sink = ConvertSinkOutputModel().from_grpc(river_data["convert_sink"])
-    river_convert_source = ConvertSourceOutputModel().from_grpc(river_data["convert_source"])
+    river_convert_sink = ConvertSinkOutputModel(**river_data["convert_sink"])
+    river_convert_source = ConvertSourceOutputModel(**river_data["convert_source"])
     optimize_network = {
         "n_demand_list": river_convert_sink.n_demand_list,
         "n_supply_list": river_convert_source.n_supply_list,
@@ -97,11 +98,11 @@ def cf_module_to_optimize_network(river_data):
 def teo_module_to_optimize_network(river_data):
     optimize_network = {"ex_cap": []}
     if buildmodel := river_data.get("buildmodel"):
-        river_buildmodel = BuildModelOutputModel().from_grpc(buildmodel)
+        river_buildmodel = BuildModelOutputModel(**buildmodel)
         optimize_network["ex_cap"] = river_buildmodel.ex_capacities
     return optimize_network
 
 
 def gis_module_to_optimize_network(initial_data, river_data):  # noqa
-    river_create_network = CreateNetworkOutputModel().from_grpc(river_data["create_network"])
+    river_create_network = CreateNetworkOutputModel(**river_data["create_network"])
     return river_create_network.dict()
