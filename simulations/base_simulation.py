@@ -10,7 +10,7 @@ from market.market_pb2_grpc import MarketModuleStub
 from simulations.schemas.demo_simulation import SimulationData, IntermediateStep
 from teo.teo_pb2_grpc import TEOModuleStub
 
-from config.grpc_client import GrpcChannel
+from config.grpc_client import GrpcSingletonChannel
 from config.redis_client import RedisClient
 from config.settings import Settings
 from reports.reporter import Reporter
@@ -144,7 +144,7 @@ class BaseSimulation(ABC):
         )
 
     def __stub_composer(self) -> None:
-        self.channel = GrpcChannel()
+        self.singleton_channel = GrpcSingletonChannel()
         self.__cf_stub()
         self.__gis_stub()
         self.__teo_stub()
@@ -152,44 +152,49 @@ class BaseSimulation(ABC):
         self.__business_stub()
 
     def __cf_stub(self) -> None:
-        # self.cf_channel = grpc.insecure_channel(
-        #     target=f"{Settings.CF_HOST}:{Settings.CF_PORT}",
-        #     options=self.__GRPC_CHANNEL_OPTIONS
-        # )
-        # self.cf = CFModuleStub(channel=self.cf_channel)
-        self.cf = CFModuleStub(channel=self.channel.cf)
+        cf_channel = self.singleton_channel.cf
+        if not Settings.GRPC_SINGLETON_CHANNEL:
+            cf_channel = grpc.insecure_channel(
+                target=f"{Settings.CF_HOST}:{Settings.CF_PORT}",
+                options=self.__GRPC_CHANNEL_OPTIONS
+            )
+        self.cf = CFModuleStub(channel=cf_channel)
 
     def __gis_stub(self) -> None:
-        # self.gis_channel = grpc.insecure_channel(
-        #     target=f"{Settings.GIS_HOST}:{Settings.GIS_PORT}",
-        #     options=self.__GRPC_CHANNEL_OPTIONS
-        # )
-        # self.gis = GISModuleStub(channel=self.gis_channel)
-        self.gis = GISModuleStub(channel=self.channel.gis)
+        gis_channel = self.singleton_channel.gis
+        if not Settings.GRPC_SINGLETON_CHANNEL:
+            gis_channel = grpc.insecure_channel(
+                target=f"{Settings.GIS_HOST}:{Settings.GIS_PORT}",
+                options=self.__GRPC_CHANNEL_OPTIONS
+            )
+        self.gis = GISModuleStub(channel=gis_channel)
 
     def __teo_stub(self) -> None:
-        # self.teo_channel = grpc.insecure_channel(
-        #     target=f"{Settings.TEO_HOST}:{Settings.TEO_PORT}",
-        #     options=self.__GRPC_CHANNEL_OPTIONS
-        # )
-        # self.teo = TEOModuleStub(channel=self.teo_channel)
-        self.teo = TEOModuleStub(channel=self.channel.teo)
+        teo_channel = self.singleton_channel.teo
+        if not Settings.GRPC_SINGLETON_CHANNEL:
+            teo_channel = grpc.insecure_channel(
+                target=f"{Settings.TEO_HOST}:{Settings.TEO_PORT}",
+                options=self.__GRPC_CHANNEL_OPTIONS
+            )
+        self.teo = TEOModuleStub(channel=teo_channel)
 
     def __market_stub(self) -> None:
-        # self.market_channel = grpc.insecure_channel(
-        #     target=f"{Settings.MM_HOST}:{Settings.MM_PORT}",
-        #     options=self.__GRPC_CHANNEL_OPTIONS
-        # )
-        # self.market = MarketModuleStub(channel=self.market_channel)
-        self.market = MarketModuleStub(channel=self.channel.market)
+        market_channel = self.singleton_channel.market
+        if not Settings.GRPC_SINGLETON_CHANNEL:
+            market_channel = grpc.insecure_channel(
+                target=f"{Settings.MM_HOST}:{Settings.MM_PORT}",
+                options=self.__GRPC_CHANNEL_OPTIONS
+            )
+        self.market = MarketModuleStub(channel=market_channel)
 
     def __business_stub(self) -> None:
-        # self.business_channel = grpc.insecure_channel(
-        #     target=f"{Settings.BM_HOST}:{Settings.BM_PORT}",
-        #     options=self.__GRPC_CHANNEL_OPTIONS
-        # )
-        # self.business = BusinessModuleStub(channel=self.business_channel)
-        self.business = BusinessModuleStub(channel=self.channel.business)
+        business_channel = self.singleton_channel.business
+        if not Settings.GRPC_SINGLETON_CHANNEL:
+            business_channel = grpc.insecure_channel(
+                target=f"{Settings.BM_HOST}:{Settings.BM_PORT}",
+                options=self.__GRPC_CHANNEL_OPTIONS
+            )
+        self.business = BusinessModuleStub(channel=business_channel)
 
 
 class SimulationPausedException(Exception):

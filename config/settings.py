@@ -48,4 +48,5 @@ class Settings:
     DEFAULT_SIMULATION_SOLVER = os.getenv("DEFAULT_SIMULATION_SOLVER", Solver.SCIP.value)
 
     # Feature Toggle
+    GRPC_SINGLETON_CHANNEL = True if os.getenv("GRPC_SINGLETON_CHANNEL") in ("1", "True", "true") else False
     GIS_TEO_ITERATION_MODE = True if os.getenv("GIS_TEO_ITERATION_MODE") in ("1", "True", "true") else False

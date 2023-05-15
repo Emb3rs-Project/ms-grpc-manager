@@ -210,21 +210,6 @@ def cf_module_to_buildmodel_technologies_cf(river_data):
 
     return output
 
-def cf_module_to_buildmodel_reference(river_data):
-    reference = []
-    river_convert_sink = json.loads(river_data["convert_sink"])
-    river_convert_source = json.loads(river_data["convert_source"])
-
-    for sink in river_convert_sink["all_sinks_info"]["sinks"]:
-        for stream in sink["streams"]:
-            reference.append({
-                "name": stream["teo_sink_stream_id"],
-                "ref_eff_equipment": stream["ref_eff_equipment"],
-                "ref_fuel_emissions": stream["ref_fuel_emissions"],
-                "ref_fuel_price": stream["ref_fuel_price"],
-            })
-                
-    return list(filter(lambda x: (x is not None), reference))
 
 def cf_module_to_buildmodel_reference(river_data):
     reference = []
