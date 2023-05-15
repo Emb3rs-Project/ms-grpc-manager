@@ -75,9 +75,7 @@ def platform_to_optimize_network(initial_data):
         "vc_pip_ex": input_data["vc_pip_ex"],
         "invest_pumps": input_data["invest_pumps"],
         "time_limit": input_data["time_limit"],
-        # NEW - Check if this should be in Platform.
         "surface_losses_dict": input_data.get("surface_losses_dict", [{"dn": 1.0, "overland_losses": 1.0}]),
-        # NEW
         "solver": solver.value
     }
     return optimize_network
