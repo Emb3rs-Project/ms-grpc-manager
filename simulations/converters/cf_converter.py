@@ -76,7 +76,7 @@ def platform_to_convert_pinch(initial_data):
         "pinch_delta_T_min": pinch_analysis_data["pinch_delta_T_min"],
         "all_input_objects": streams,
         "lifetime": pinch_analysis_data["lifetime"],
-        "fuels_data": sources[0]["fuels_data"],
+        "fuels_data": sources[0].get("fuels_data", _DEFAULT_FUELS_DATA),
         "number_output_options": pinch_analysis_data["number_output_options"],
         "interest_rate": pinch_analysis_data["interest_rate"],
     }
@@ -88,3 +88,11 @@ def _build_stream(stream: dict) -> dict:
     stream["fuel"] = stream.get("fuel", "none")
     stream["eff_equipment"] = stream.get("eff_equipment")
     return stream
+
+
+_DEFAULT_FUELS_DATA = {
+    "natural_gas": {"price": 0.02274101807185543, "co2_emissions": 0.209923664},
+    "biomass": {"price": 0.043199654, "co2_emissions": 0.0108},
+    "electricity": {"price": 0.089, "co2_emissions": 0.606},
+    "fuel_oil": {"price": 0.047392344, "co2_emissions": 0.266272189},
+}

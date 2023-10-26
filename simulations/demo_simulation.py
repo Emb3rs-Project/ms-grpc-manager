@@ -254,6 +254,7 @@ class DemoSimulation(BaseSimulation):
             self.last_request_input_data = buildmodel_input
 
             last_losses_in_kw = deepcopy(gis_module["losses_in_kw"])
+            self._BaseSimulation__teo_stub()  # noqa  # Force a new connection
             result = self.teo.buildmodel(buildmodel_request)
             buildmodel_output = BuildModelOutputModel().from_grpc(result).dict()
 
